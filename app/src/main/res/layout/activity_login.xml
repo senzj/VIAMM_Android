@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -15,17 +15,24 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="95dp"
-        android:src="@drawable/viammlogo" />
+        android:src="@drawable/viammlogo"
+        app:layout_constraintBottom_toTopOf="@+id/panel_middle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.934" />
 
     <RelativeLayout
         android:id="@+id/panel_middle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="334dp"
+        android:layout_height="382dp"
         android:layout_below="@+id/logo"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp">
+        android:layout_marginBottom="128dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.493"
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/Welcome"
@@ -50,11 +57,11 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/username"
-            android:layout_below="@+id/login"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginTop="5dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/login"
+            android:layout_marginTop="5dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/usernameInput"
@@ -65,12 +72,12 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/password"
-            android:layout_below="@+id/username"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginTop="10dp"
-            app:endIconMode="password_toggle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/username"
+            android:layout_marginTop="10dp"
+            app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/passwordInput"
@@ -86,7 +93,7 @@
             android:layout_below="@+id/password"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:textStyle="bold"
-            android:text="LOG IN" />
+            android:text="LOG IN"
+            android:textStyle="bold" />
     </RelativeLayout>
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
