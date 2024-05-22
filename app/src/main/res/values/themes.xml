@@ -1,9 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.VIAMM" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+
+    <!-- Base theme for the application without ActionBar (used for LoginActivity) -->
+    <style name="Base.Theme.VIAMM" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <!-- Theme with ActionBar (used for MainActivity and other activities) -->
+    <style name="Base.Theme.VIAMM.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your theme here -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.VIAMM" parent="Base.Theme.VIAMM" />
+    <style name="Theme.VIAMM.NoAB" parent="Base.Theme.VIAMM.NoActionBar" />
 </resources>

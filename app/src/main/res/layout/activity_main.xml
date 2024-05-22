@@ -8,14 +8,33 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
     <Button
         android:id="@+id/btn_logout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:padding="20dp"
+        android:text="Logout" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:text="Logout"
-        />
+        >
 
+        <Button
+            android:id="@+id/btn_order"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Orders"
+            android:padding="30dp"
+            android:textSize="20dp"
+            />
+
+    </RelativeLayout>
 
 </RelativeLayout>
