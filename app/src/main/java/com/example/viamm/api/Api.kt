@@ -7,17 +7,13 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
 interface Api {
-//    @FormUrlEncoded
-//    @POST("create_user")
-//    fun login(
-//        @Field("username") username: String,
-//        @Field("password") password: String
-//    ):Call<SignupResponse>
 
+    // Retrofit interface
     @FormUrlEncoded
-    @POST("Login")
+    @POST("auth/login")
     fun login(
         @Field("username") username: String,
         @Field("password") password: String
-    ):Call<LoginResponse>
+    ): Call<LoginResponse>
+
 }

@@ -7,7 +7,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/material_dynamic_neutral99"
+    android:background="@drawable/login_background_sub"
     tools:context=".LoginActivity">
 
     <ImageView
@@ -15,7 +15,7 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/viammlogo"
+        android:src="@drawable/viammlogo_sub"
         app:layout_constraintBottom_toTopOf="@+id/panel_middle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -42,11 +42,12 @@
             android:layout_marginTop="20dp"
             android:fontFamily="monospace"
             android:text="Welcome to Viamm"
-            android:textSize="30sp"
+            android:textSize="35sp"
+
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/login"
+            android:id="@+id/text_login"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/Welcome"
@@ -56,44 +57,45 @@
             android:textSize="15sp" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/username"
+            android:id="@+id/field_username"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/login"
+            android:layout_below="@+id/text_login"
             android:layout_marginTop="5dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/usernameInput"
+                android:id="@+id/input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="company" />
+                android:hint="Company" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/password"
+            android:id="@+id/field_password"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/username"
+            android:layout_below="@+id/field_username"
             android:layout_marginTop="10dp"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/passwordInput"
+                android:id="@+id/input_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="password" />
+                android:hint="Password" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
-            android:id="@+id/log_in"
+            android:id="@+id/btn_login"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/password"
+            android:layout_below="@+id/field_password"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
             android:text="LOG IN"
             android:textStyle="bold" />
+
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

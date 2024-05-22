@@ -5,10 +5,20 @@ import com.example.viamm.models.User
 
 class SharedData private constructor(private val mCtx: Context) {
 
-    val isLoggedIn: Boolean
+    // Change isLoggedIn from val to var
+    var isLoggedIn: Boolean
         get() {
             val sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
             return sharedPreferences.getString("username", null) != null
+        }
+        set(value) {
+            val sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            if (!value) {
+                editor.remove("username") // Remove username from SharedPreferences
+                editor.remove("password") // Remove password from SharedPreferences
+            }
+            editor.apply()
         }
 
     val user: User?
