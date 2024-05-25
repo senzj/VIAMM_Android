@@ -16,8 +16,10 @@ class MainActivity : AppCompatActivity() {
 //    Initializing variables
     private lateinit var toolbar: Toolbar
     private lateinit var binding: ActivityMainBinding
+
     private lateinit var logoutBtn: Button
     private lateinit var orderBtn: Button
+    private lateinit var recordBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +42,19 @@ class MainActivity : AppCompatActivity() {
         // Initialize buttons
         orderBtn = findViewById(R.id.btn_order)
         logoutBtn = findViewById(R.id.btn_logout)
+        recordBtn = findViewById(R.id.btn_record)
 
-        // Set onClickListeners
+        // Set onClickListeners for Order
         orderBtn.setOnClickListener {
             redirectToOrder()
         }
 
+        // Set onClickListeners for Records
+        recordBtn.setOnClickListener {
+            redirectToRecord()
+        }
+
+        // Set onClickListeners for Logout
         logoutBtn.setOnClickListener {
             logout() // Call the logout function
         }
@@ -58,9 +67,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-//end of on create
+//end of onCreate
 
-// V Other functions go here V
+// ===== Other functions go here =====
 
 // Function to handle logout
     private fun logout() {
@@ -77,6 +86,12 @@ class MainActivity : AppCompatActivity() {
 //    Redirect to order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
+        startActivity(intent)
+    }
+
+//    Redirect to records activity
+    private fun redirectToRecord() {
+        val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
     }
 

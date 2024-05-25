@@ -18,30 +18,30 @@
         android:theme="@style/Theme.VIAMM"
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
-
-<!--Order Activity-->
+        <activity
+            android:name=".RecordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Orders"
+            android:exported="false" /> <!-- Order Activity -->
         <activity
             android:name=".OrderActivity"
-            android:theme="@style/Base.Theme.VIAMM"
-            android:exported="true" />
-
-<!-- Login Activity -->
+            android:exported="true"
+            android:theme="@style/Base.Theme.VIAMM" /> <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.VIAMM.NoAB">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-<!-- Main Activity -->
+        </activity> <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.VIAMM" />
-
     </application>
 
 </manifest>
