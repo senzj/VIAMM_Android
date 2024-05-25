@@ -2,7 +2,10 @@ package com.example.viamm
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -13,91 +16,53 @@ import com.example.viamm.storage.SharedData
 
 class MainActivity : AppCompatActivity() {
 
-//    Initializing variables
-    private lateinit var toolbar: Toolbar
+    // Initializing variables
     private lateinit var binding: ActivityMainBinding
 
-    private lateinit var logoutBtn: Button
-    private lateinit var orderBtn: Button
-    private lateinit var recordBtn: Button
+//    Activity lifecycles ==========================================================================
 
+//    OnCreate function of MainActivity
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         // Initialize the binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Set ups toolbar
-//        toolbar = findViewById(R.id.actionbar)
-//        setSupportActionBar(toolbar)
-
-        // Initialize buttons
-        orderBtn = findViewById(R.id.btn_order)
-        logoutBtn = findViewById(R.id.btn_logout)
-        recordBtn = findViewById(R.id.btn_record)
-
-        // Set onClickListeners for Order
-        orderBtn.setOnClickListener {
-            redirectToOrder()
-        }
-
-        // Set onClickListeners for Records
-        recordBtn.setOnClickListener {
-            redirectToRecord()
-        }
-
-        // Set onClickListeners for Logout
-        logoutBtn.setOnClickListener {
-            logout() // Call the logout function
-        }
-
-        // Set insets listener
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-    }
-//end of onCreate
+        // Initialize toolbar
+        val toolbar: Toolbar? = binding.toolbar
+        setSupportActionBar(toolbar)
 
-// ===== Other functions go here =====
+        // Initialize buttons
+        val orderBtn: Button = binding.btnOrder
+        val recordBtn: Button = binding.btnRecord
+        val btn_statistics : Button = binding.btnStatistics
 
-// Function to handle logout
-    private fun logout() {
-        SharedData.getInstance(this).isLoggedIn = false
+        // Set onClickListeners for Order button
+        orderBtn.setOnClickListener {
+            redirectToOrder()
+        }
 
-        // Redirect to login activity
-        val intent = Intent(applicationContext, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish() // Finish the current activity
-    }
+        // Set onClickListeners for Records button
+        recordBtn.setOnClickListener {
+            redirectToRecord()
+        }
 
+        // Set onClickListeners for Statistics button
+        btn_statistics.setOnClickListener {
+            redirectToStatistics()
+        }
 
-//    Redirect to order activity
-    private fun redirectToOrder() {
-        val intent = Intent(applicationContext, OrderActivity::class.java)
-        startActivity(intent)
-    }
-
-//    Redirect to records activity
-    private fun redirectToRecord() {
-        val intent = Intent(applicationContext, RecordActivity::class.java)
-        startActivity(intent)
     }
 
-
-
-    // Function to check if user is logged in
+// Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
 
@@ -108,4 +73,56 @@ class MainActivity : AppCompatActivity() {
             finish() // Finish the current activity
         }
     }
+
+    // Action bar/menu
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return true
+    }
+
+    // Action bar item selected
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.btn_logout -> {
+                logout()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+// Other Functions =================================================================================
+
+// Redirect to order activity
+    private fun redirectToOrder() {
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        startActivity(intent)
+    }
+
+// Redirect to records activity
+    private fun redirectToRecord() {
+        val intent = Intent(applicationContext, RecordActivity::class.java)
+        startActivity(intent)
+    }
+
+// Redirect to statistics activity
+    private fun redirectToStatistics() {
+        val intent = Intent(applicationContext, StatisticsActivity::class.java)
+        startActivity(intent)
+    }
+
+// Function to handle logout
+    private fun logout() {
+        SharedData.getInstance(this).isLoggedIn = false
+
+        // Redirect to login activity
+        val intent = Intent(applicationContext, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish() // Finish the current activity
+        Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
+    }
+
+//    End of MainActivity ==========================================================================
+
 }

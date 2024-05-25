@@ -2,11 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/main"
-    tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/statistics"
+    tools:context=".StatisticsActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -16,13 +16,11 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:title="Dashboard"
+        app:title="Statistics"
         app:contentInsetStartWithNavigation="0dp"
         app:contentInsetStart="0dp"
         app:contentInsetEnd="0dp"
         tools:layout_editor_absoluteX="1dp" />
-
-
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
@@ -31,33 +29,12 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <Button
-            android:id="@+id/btn_order"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/textViewCentered"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Orders"
-            android:textSize="20sp"
-            android:padding="30dp"/>
-
-        <Button
-            android:id="@+id/btn_record"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Records"
-            android:textSize="20sp"
-            android:padding="30dp"
-            android:layout_below="@+id/btn_order"
-            android:layout_marginTop="8dp"/>
-
-        <Button
-            android:id="@+id/btn_statistics"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/btn_record"
-            android:layout_marginTop="8dp"
-            android:padding="30dp"
-            android:text="Statistics"
-            android:textSize="20sp" />
+            android:text="Statistics Activity"
+            android:layout_centerInParent="true" />
 
     </RelativeLayout>
 

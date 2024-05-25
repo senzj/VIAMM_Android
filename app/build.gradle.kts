@@ -17,6 +17,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
@@ -65,5 +66,7 @@ dependencies {
 
     implementation("com.google.android.material:material:1.4.0-beta01")
     implementation("com.google.android.material:material:1.2.0")
+
+//    implementation("com.android.support:appcompat-v7:23.2.0")
 
 }

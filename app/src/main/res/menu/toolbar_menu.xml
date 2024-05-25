@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/item_list"
+        android:title=""
+        android:icon="@drawable/baseline_menu_24"
+        app:showAsAction="always">
+
+        <menu>
+
+            <item
+                android:id="@+id/camera_btn"
+                android:title="Money Scan"
+                android:icon="@drawable/baseline_camera_alt_24"
+                app:showAsAction="ifRoom|collapseActionView" />
+
+            <item
+                android:id="@+id/settings_btn"
+                android:title="Settings"
+                android:icon="@drawable/baseline_settings_24"
+                app:showAsAction="ifRoom|collapseActionView" />
+
+            <item
+                android:id="@+id/btn_logout"
+                android:title="Logout"
+                android:icon="@drawable/baseline_logout_24"
+                app:showAsAction="ifRoom|collapseActionView" />
+
+        </menu>
+
+    </item>
+
+
+</menu>

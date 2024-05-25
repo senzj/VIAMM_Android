@@ -9,13 +9,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.viamm.databinding.ActivityRecordBinding
+import com.example.viamm.databinding.ActivityStatisticsBinding
 import com.example.viamm.storage.SharedData
 
-class RecordActivity : AppCompatActivity() {
+class StatisticsActivity : AppCompatActivity() {
 
     // Initializing variables
-    private lateinit var binding: ActivityRecordBinding
+    private lateinit var binding: ActivityStatisticsBinding
 
 //    Activity lifecycles ==========================================================================
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +23,7 @@ class RecordActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         // Inflate the layout using ViewBinding
-        binding = ActivityRecordBinding.inflate(layoutInflater)
+        binding = ActivityStatisticsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Inflate the toolbar
@@ -69,5 +69,5 @@ class RecordActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
     }
 
-//    End of Record Activity =======================================================================
+//    End of Statistics Activity ===================================================================
 }
