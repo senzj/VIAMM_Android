@@ -18,19 +18,24 @@
         android:theme="@style/Theme.VIAMM"
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
+        <!-- Edit Order Activity-->
+        <activity
+            android:name=".EditOrderActivity"
+            android:exported="true" />
+        <!-- Statistics Activity -->
         <activity
             android:name=".StatisticsActivity"
-            android:exported="false" />
+            android:exported="true" />
+        <!-- Record Activity -->
         <activity
             android:name=".RecordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Orders"
-            android:exported="false" /> <!-- Order Activity -->
+            android:exported="true" />
+        <!-- Order Activity -->
         <activity
             android:name=".OrderActivity"
             android:exported="true"
-            android:theme="@style/Base.Theme.VIAMM" /> <!-- Login Activity -->
+            android:theme="@style/Base.Theme.VIAMM" />
+        <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"
             android:exported="true"
@@ -40,7 +45,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Main Activity -->
+        </activity>
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

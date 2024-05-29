@@ -1,18 +1,16 @@
 package com.example.viamm
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.RetrofitClient
-import com.example.viamm.models.LoginResponse
+import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.storage.SharedData
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call

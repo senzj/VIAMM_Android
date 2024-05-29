@@ -1,7 +1,7 @@
 package com.example.viamm.storage
 
 import android.content.Context
-import com.example.viamm.models.User
+import com.example.viamm.models.Login.User
 
 class SharedData private constructor(private val mCtx: Context) {
 
