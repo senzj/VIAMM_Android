@@ -18,23 +18,28 @@
         android:theme="@style/Theme.VIAMM"
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
+        
         <!-- Edit Order Activity-->
         <activity
             android:name=".EditOrderActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".OrderActivity"/>
         <!-- Statistics Activity -->
         <activity
             android:name=".StatisticsActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".MainActivity"/>
         <!-- Record Activity -->
         <activity
             android:name=".RecordActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".MainActivity"/>
         <!-- Order Activity -->
         <activity
             android:name=".OrderActivity"
             android:exported="true"
-            android:theme="@style/Base.Theme.VIAMM" />
+            android:theme="@style/Base.Theme.VIAMM"
+            android:parentActivityName=".MainActivity"/>
         <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"

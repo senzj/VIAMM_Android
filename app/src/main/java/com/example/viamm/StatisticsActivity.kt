@@ -26,8 +26,12 @@ class StatisticsActivity : AppCompatActivity() {
         binding = ActivityStatisticsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inflate the toolbar
+        // Set up the toolbar
         setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
+        }
 
         // Apply window insets listener to the root layout
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -40,6 +44,10 @@ class StatisticsActivity : AppCompatActivity() {
     // Action bar/menu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
+
+        // Remove the logout button if it exists
+        menu?.findItem(R.id.btn_logout)?.isVisible = false
+
         return true
     }
 
@@ -50,7 +58,11 @@ class StatisticsActivity : AppCompatActivity() {
                 logout()
                 true
             }
-            // Handle other menu item clicks here
+
+            android.R.id.home -> {
+                finish()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

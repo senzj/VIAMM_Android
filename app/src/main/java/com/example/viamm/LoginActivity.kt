@@ -131,4 +131,5 @@ class LoginActivity : AppCompatActivity() {
             Log.i("Login", "Already Logged in")
         }
     }
+    // end of onStart()
 }

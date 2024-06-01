@@ -50,7 +50,7 @@
             android:textSize="18sp" />
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/TVStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView4"
@@ -67,13 +67,13 @@
             android:layout_below="@id/tvOrderID"
             android:layout_marginStart="141dp"
             android:layout_marginTop="16dp"
-            android:layout_toEndOf="@id/textView" />
+            android:layout_toEndOf="@id/TVStatus" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/TVService"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/textView"
+            android:layout_below="@id/TVStatus"
             android:layout_alignParentStart="true"
             android:layout_marginTop="16dp"
             android:text="Service Type:"
@@ -87,12 +87,12 @@
             android:layout_below="@id/spOrderStatus"
             android:layout_marginStart="94dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/textView2"
+            android:layout_toEndOf="@id/TVService"
             android:hint="Ordered Service"
             android:text="Service Type" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/TVEmployee"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/ETOrderService"
@@ -109,12 +109,12 @@
             android:layout_below="@id/ETOrderService"
             android:layout_marginStart="118dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/textView3"
+            android:layout_toEndOf="@id/TVEmployee"
             android:hint="Employee Name"
             android:text="Employee In Charge" />
 
         <Button
-            android:id="@+id/btnOrderDelete"
+            android:id="@+id/btnOrderBack"
             android:layout_width="115dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/ETOrderEmpName"
@@ -124,7 +124,7 @@
             android:text="Delete" />
 
         <Button
-            android:id="@+id/btnOrderEdit"
+            android:id="@+id/btnOrderPayment"
             android:layout_width="115dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/ETOrderEmpName"

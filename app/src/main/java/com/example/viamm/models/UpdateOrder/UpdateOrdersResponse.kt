@@ -1,4 +1,4 @@
-package com.example.viamm.models.Update
+package com.example.viamm.models.UpdateOrder
 
 data class UpdateOrdersResponse(
     val error: String,
