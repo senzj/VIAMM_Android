@@ -6,10 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.viamm.RecordActivity
 import com.example.viamm.databinding.ItemOrderBinding
-import com.example.viamm.models.getOngoingOrder.OngoingOrder
+import com.example.viamm.models.Order.Orders
 
-class OrderAdapter(private var orderList: List<OngoingOrder>, private val listener: RVListEvent) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
+class CompletedOrderAdapter(private var orderList: List<Orders>, private val listener: RecordActivity) : RecyclerView.Adapter<CompletedOrderAdapter.OrderViewHolder>() {
 
     inner class OrderViewHolder(val binding: ItemOrderBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
@@ -48,7 +49,7 @@ class OrderAdapter(private var orderList: List<OngoingOrder>, private val listen
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateOrders(newOrders: List<OngoingOrder>) {
+    fun updateOrders(newOrders: List<Orders>) {
         orderList = newOrders
         notifyDataSetChanged()
     }

@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.viamm.adapters.OrderAdapter
+import com.example.viamm.adapters.OngoingOrderAdapter
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityOrderBinding
 import com.example.viamm.models.getOngoingOrder.OngoingOrder
@@ -23,17 +23,15 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 
-class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
+class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
 
     private lateinit var binding: ActivityOrderBinding
-    private lateinit var orderAdapter: OrderAdapter
-    private var ongoingOrderList: List<OngoingOrder> = emptyList()
+    private lateinit var ongoingOrderAdapter: OngoingOrderAdapter
+    private var orderList: List<OngoingOrder> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
 
-//    Fetching data from the API
+    // Fetching data from the API
     private fun fetchData() {
-        // Move your data fetching logic here
-        // Fetch all orders
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
                 RetrofitClient.instance.getOngoingOrders()
@@ -43,7 +41,6 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
                 }
                 Log.e("OrderActivity", "App error, details: ${e.message}")
                 return@launch
-
             } catch (e: HttpException) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "Http Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -55,8 +52,8 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {
                     val newOrders = response.body()!!.orders
-                    ongoingOrderList = newOrders
-                    orderAdapter.updateOrders(newOrders)
+                    orderList = newOrders
+                    ongoingOrderAdapter.updateOrders(newOrders)
                 }
             }
         }
@@ -67,39 +64,33 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Inflate the layout using ViewBinding
         binding = ActivityOrderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Set up the toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
 
-        // Initialize the adapter with an empty list
-        orderAdapter = OrderAdapter(ongoingOrderList, this)
+        ongoingOrderAdapter = OngoingOrderAdapter(orderList, this)
 
-        // Set the adapter and layout manager
         binding.rvOrders.apply {
-            adapter = orderAdapter
+            adapter = ongoingOrderAdapter
             layoutManager = LinearLayoutManager(this@OrderActivity)
         }
 
-        // Apply window insets listener to the root layout
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Fetch all orders
         fetchData()
     }
 
     override fun onItemClicked(position: Int) {
-        val selectedOrder = ongoingOrderList[position]
+        val selectedOrder = orderList[position]
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
         Log.d("OrderActivity", "Selected Order ID: ${selectedOrder.orderId} \nEmployee Name: ${selectedOrder.orderEmpName} \nStatus: ${selectedOrder.orderStatus}")
 
@@ -113,9 +104,8 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu) //display all item list
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
 
-        // Remove the logout button if it exists
         menu?.findItem(R.id.btn_logout)?.isVisible = false
 
         return true
@@ -123,33 +113,26 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-
             android.R.id.home -> {
                 finish()
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh data here
         fetchData()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDIT_ORDER_REQUEST_CODE && resultCode == RESULT_OK) {
-            // Check if the data needs to be refreshed
             val updatedStatus = data?.getStringExtra("UPDATED_STATUS")
             if (updatedStatus != null) {
-                // Refresh data here
                 fetchData()
             }
         }
     }
-
-
 }

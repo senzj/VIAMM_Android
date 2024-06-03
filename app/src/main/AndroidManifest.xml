@@ -19,9 +19,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
         <activity
-            android:name=".ScannerActivity"
+            android:name=".EditRecordActivity"
             android:exported="false" />
-        <!-- Edit Order Activity -->
+        <activity
+            android:name=".ScannerActivity"
+            android:exported="false" /> <!-- Edit Order Activity -->
         <activity
             android:name=".EditOrderActivity"
             android:exported="true"

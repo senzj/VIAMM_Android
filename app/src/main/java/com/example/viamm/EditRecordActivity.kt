@@ -14,43 +14,32 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
-import com.example.viamm.databinding.ActivityEditOrderBinding
+import com.example.viamm.databinding.ActivityEditRecordBinding
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class EditOrderActivity : AppCompatActivity() {
+class EditRecordActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityEditOrderBinding
+    private lateinit var binding: ActivityEditRecordBinding
     private lateinit var api: Api
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize the binding variable
-        binding = ActivityEditOrderBinding.inflate(layoutInflater)
+        binding = ActivityEditRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Set up the toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
 
-        // Initialize the Retrofit API client
         api = RetrofitClient.instance
-
-        // Apply window insets listener to the root layout
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         // Retrieve the data from the Intent
         val orderId = intent.getStringExtra("ORDER_ID")
@@ -64,65 +53,63 @@ class EditOrderActivity : AppCompatActivity() {
         Log.d("EditOrderActivity", "Employee Name: $orderEmpName")
         Log.d("EditOrderActivity", "Order Status: $orderStatus")
 
-        // Update the UI or perform actions with the retrieved data
-        binding.tvOrderID.text = "$orderId"
+        // Update the UI with the retrieved data
+        binding.tvOrderID.text = orderId
         binding.ETOrderService.setText(orderService)
         binding.ETOrderEmpName.setText(orderEmpName)
 
+        // Set click listener for Edit button
+        binding.btnRecordEdit.setOnClickListener {
+            val updatedService = binding.ETOrderService.text.toString()
+            val updatedEmpName = binding.ETOrderEmpName.text.toString()
+            val updatedStatus = binding.spOrderStatus.selectedItem.toString()
 
-        // Set Payment button click listener to open camera (scanner Activity)
-        binding.btnOrderPayment.setOnClickListener {
-            val intent = Intent(this, ScannerActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
+            orderId?.let { orderId ->
+                api.updateOrder(orderId, updatedService, updatedEmpName, updatedStatus)
+                    .enqueue(object : Callback<UpdateOrdersResponse> {
+                        override fun onResponse(
+                            call: Call<UpdateOrdersResponse>,
+                            response: Response<UpdateOrdersResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                // Show success message
+                                Toast.makeText(
+                                    this@EditRecordActivity,
+                                    "Order ID \"$orderId\" Updated Successfully!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                Log.d(
+                                    "EditOrderActivity",
+                                    "Order Updated Successfully! Redirecting to OrderActivity"
+                                )
 
-
-        // Set click listener for cancel button
-        binding.btnCancelOrder.setOnClickListener {
-            val updatedStatus = "Cancelled"
-
-            // Call the cancelOrder API endpoint
-            api.updateOrderStatus(orderId!!, updatedStatus)
-                .enqueue(object : Callback<CancelOrderResponse> {
-                    override fun onResponse(
-                        call: Call<CancelOrderResponse>,
-                        response: Response<CancelOrderResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            // Show success message
-                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Cancelled.", Toast.LENGTH_SHORT).show()
-                            Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
-
-                            // Set result for the previous activity
-                            val resultIntent = Intent()
-                            resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
-                            setResult(RESULT_OK, resultIntent)
-                            finish()
-                        } else {
-                            // Show error message
-                            Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
-                            Log.d("EditOrderActivity", "An Error Occurred $response.")
+                                // Set result for the previous activity
+                                val resultIntent = Intent()
+                                resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
+                                setResult(RESULT_OK, resultIntent)
+                                finish()
+                            } else {
+                                handleErrorResponse(response)
+                            }
                         }
-                    }
 
-                    override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
-                        // Show error message
-                        Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                        Log.d("EditOrderActivity", "Error: ${t.message}")
-                    }
-                })
+                        override fun onFailure(call: Call<UpdateOrdersResponse>, t: Throwable) {
+                            handleFailure(t)
+                        }
+                    })
+            }
         }
+
 
         // Set click listener for back button
-        binding.btnOrderBack.setOnClickListener {
+        binding.btnRecordBack.setOnClickListener {
             finish()
         }
 
         // Set up the Spinner with the array resource
         ArrayAdapter.createFromResource(
             this,
-            R.array.order_status_options, // order_status_options is from value>string
+            R.array.order_status_options,
             android.R.layout.simple_spinner_item
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -137,6 +124,18 @@ class EditOrderActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun handleErrorResponse(response: Response<*>) {
+        val errorBody = response.errorBody()?.string()
+        val errorMessage = errorBody ?: "An Error Occurred. Failed to Update the Requested Order."
+        Toast.makeText(this@EditRecordActivity, errorMessage, Toast.LENGTH_LONG).show()
+        Log.d("EditOrderActivity", "An Error Occurred $response.")
+    }
+
+    private fun handleFailure(t: Throwable) {
+        Toast.makeText(this@EditRecordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+        Log.d("EditOrderActivity", "Error: ${t.message}")
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -154,8 +153,10 @@ class EditOrderActivity : AppCompatActivity() {
                 finish()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
-
 }
+
+

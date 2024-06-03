@@ -23,8 +23,8 @@ interface Api {
     ): Call<LoginResponse>
 
     // API to handle data requested by the user and retrieve via codeigniter
-    @GET("order")
-    suspend fun getAllOrders(
+    @GET("order/completed")
+    suspend fun getCompletedOrders(
 
     ): Response<OrderResponse>
 

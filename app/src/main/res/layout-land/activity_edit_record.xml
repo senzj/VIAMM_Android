@@ -114,39 +114,27 @@
             android:text="Employee In Charge" />
 
         <Button
-            android:id="@+id/btnOrderBack"
-            android:layout_width="115dp"
+            android:id="@+id/btnRecordBack"
+            android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/ETOrderEmpName"
             android:layout_alignParentStart="true"
             android:layout_marginTop="24dp"
             android:backgroundTint="@color/red"
-            android:textColor="@color/white"
-            android:text="Back" />
-
-        <Button
-            android:id="@+id/btnCancelOrder"
-            android:layout_width="115dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/ETOrderEmpName"
-            android:layout_marginStart="23dp"
-            android:layout_marginTop="22dp"
-            android:layout_toEndOf="@+id/btnOrderBack"
-            android:backgroundTint="@color/bluegreen"
-            android:text="Cancel Order"
+            android:text="Back"
             android:textColor="@color/white" />
 
         <Button
-            android:id="@+id/btnOrderPayment"
-            android:layout_width="115dp"
+            android:id="@+id/btnRecordEdit"
+            android:layout_width="167dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/ETOrderEmpName"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
             android:backgroundTint="@color/green"
-            android:textColor="@color/white"
-            android:text="Proceed to Payemnt" />
+            android:text="Edit Record"
+            android:textColor="@color/white" />
 
     </RelativeLayout>
 
