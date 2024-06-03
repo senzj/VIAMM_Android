@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="30dp"
-            android:text="Orders"
+            android:text="booking"
             android:textSize="20sp" />
 
         <Button

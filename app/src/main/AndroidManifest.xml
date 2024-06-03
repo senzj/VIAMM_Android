@@ -19,17 +19,27 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
         <activity
-            android:name=".StatisticsActivity"
+            android:name=".EditRecordActivity"
             android:exported="false" />
+        <activity
+            android:name=".ScannerActivity"
+            android:exported="false" /> <!-- Edit Order Activity -->
+        <activity
+            android:name=".EditOrderActivity"
+            android:exported="true"
+            android:parentActivityName=".OrderActivity" /> <!-- Statistics Activity -->
+        <activity
+            android:name=".StatisticsActivity"
+            android:exported="true"
+            android:parentActivityName=".MainActivity" /> <!-- Record Activity -->
         <activity
             android:name=".RecordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Orders"
-            android:exported="false" /> <!-- Order Activity -->
+            android:exported="true"
+            android:parentActivityName=".MainActivity" /> <!-- Order Activity -->
         <activity
             android:name=".OrderActivity"
             android:exported="true"
+            android:parentActivityName=".MainActivity"
             android:theme="@style/Base.Theme.VIAMM" /> <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"

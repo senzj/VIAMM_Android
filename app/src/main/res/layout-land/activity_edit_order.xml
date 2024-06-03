@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EditOrderActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/lavender"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="Edit Order"
+        app:contentInsetStartWithNavigation="0dp"
+        app:contentInsetStart="0dp"
+        app:contentInsetEnd="0dp" />
+
+    <RelativeLayout
+        android:id="@+id/RLEditOrder"
+        android:layout_width="383dp"
+        android:layout_height="246dp"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintVertical_bias="0.849">
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="Order ID:"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvOrderID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="44dp"
+            android:layout_toEndOf="@id/textView4"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/TVStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textView4"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="16dp"
+            android:text="Status:"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/spOrderStatus"
+            android:layout_width="168dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvOrderID"
+            android:layout_marginStart="141dp"
+            android:layout_marginTop="16dp"
+            android:layout_toEndOf="@id/TVStatus" />
+
+        <TextView
+            android:id="@+id/TVService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/TVStatus"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="16dp"
+            android:text="Service Type:"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/ETOrderService"
+            android:layout_width="164dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/spOrderStatus"
+            android:layout_marginStart="94dp"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@id/TVService"
+            android:hint="Ordered Service"
+            android:text="Service Type" />
+
+        <TextView
+            android:id="@+id/TVEmployee"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ETOrderService"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="16dp"
+            android:text="Employee:"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/ETOrderEmpName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ETOrderService"
+            android:layout_marginStart="118dp"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@id/TVEmployee"
+            android:hint="Employee Name"
+            android:text="Employee In Charge" />
+
+        <Button
+            android:id="@+id/btnOrderBack"
+            android:layout_width="115dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ETOrderEmpName"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/red"
+            android:textColor="@color/white"
+            android:text="Back" />
+
+        <Button
+            android:id="@+id/btnCancelOrder"
+            android:layout_width="115dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ETOrderEmpName"
+            android:layout_marginStart="23dp"
+            android:layout_marginTop="22dp"
+            android:layout_toEndOf="@+id/btnOrderBack"
+            android:backgroundTint="@color/bluegreen"
+            android:text="Cancel Order"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnOrderPayment"
+            android:layout_width="115dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ETOrderEmpName"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/green"
+            android:textColor="@color/white"
+            android:text="Proceed to Payemnt" />
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
