@@ -69,45 +69,53 @@ class EditOrderActivity : AppCompatActivity() {
         binding.ETOrderService.setText(orderService)
         binding.ETOrderEmpName.setText(orderEmpName)
 
-        // Set click listener for Edit button
+//        // Set click listener for Edit button
+//        binding.btnOrderEdit.setOnClickListener {
+//            // Call the updateOrder API endpoint
+//            val updatedService = binding.ETOrderService.text.toString()
+//            val updatedEmpName = binding.ETOrderEmpName.text.toString()
+//            val updatedStatus = binding.spOrderStatus.selectedItem.toString()
+//
+//            api.updateOrder(orderId!!, updatedService, updatedEmpName, updatedStatus)
+//                .enqueue(object : Callback<UpdateOrdersResponse> {
+//                    override fun onResponse(
+//                        call: Call<UpdateOrdersResponse>,
+//                        response: Response<UpdateOrdersResponse>
+//                    ) {
+//                        if (response.isSuccessful) {
+//                            // Show success message
+//                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Updated Successfully!", Toast.LENGTH_SHORT).show()
+//
+//                            Log.d("EditOrderActivity", "Order Updated Successfully! Redirecting to OrderActivity")
+//
+//                            // Set result for the previous activity
+//                            val resultIntent = Intent()
+//                            resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
+//                            setResult(RESULT_OK, resultIntent)
+//                            finish()
+//                        } else {
+//                            // Show error message
+//                            Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Update the Requested Order. $response", Toast.LENGTH_LONG).show()
+//
+//                            Log.d("EditOrderActivity", "An Error Occurred $response.")
+//                        }
+//                    }
+//
+//                    override fun onFailure(call: Call<UpdateOrdersResponse>, t: Throwable) {
+//                        // Show error message
+//                        Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+//                        Log.d("EditOrderActivity", "Error: ${t.message}")
+//                    }
+//                })
+//        }
+
+        // Set Payment button click listener to open camera (scanner Activity)
         binding.btnOrderPayment.setOnClickListener {
-            // Call the updateOrder API endpoint
-            val updatedService = binding.ETOrderService.text.toString()
-            val updatedEmpName = binding.ETOrderEmpName.text.toString()
-            val updatedStatus = binding.spOrderStatus.selectedItem.toString()
-
-            api.updateOrder(orderId!!, updatedService, updatedEmpName, updatedStatus)
-                .enqueue(object : Callback<UpdateOrdersResponse> {
-                    override fun onResponse(
-                        call: Call<UpdateOrdersResponse>,
-                        response: Response<UpdateOrdersResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            // Show success message
-                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Updated Successfully!", Toast.LENGTH_SHORT).show()
-
-                            Log.d("EditOrderActivity", "Order Updated Successfully! Redirecting to OrderActivity")
-
-                            // Set result for the previous activity
-                            val resultIntent = Intent()
-                            resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
-                            setResult(RESULT_OK, resultIntent)
-                            finish()
-                        } else {
-                            // Show error message
-                            Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Update the Requested Order. $response", Toast.LENGTH_LONG).show()
-
-                            Log.d("EditOrderActivity", "An Error Occurred $response.")
-                        }
-                    }
-
-                    override fun onFailure(call: Call<UpdateOrdersResponse>, t: Throwable) {
-                        // Show error message
-                        Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                        Log.d("EditOrderActivity", "Error: ${t.message}")
-                    }
-                })
+            val intent = Intent(this, ScannerActivity::class.java)
+            startActivity(intent)
+            finish()
         }
+
 
         // Set click listener for cancel button
         binding.btnCancelOrder?.setOnClickListener {

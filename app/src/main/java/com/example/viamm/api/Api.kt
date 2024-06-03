@@ -4,6 +4,7 @@ import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.models.Order.OrderResponse
 import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
+import com.example.viamm.models.getOngoingOrder.OngoingOrderResponse
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Field
@@ -26,6 +27,11 @@ interface Api {
     suspend fun getAllOrders(
 
     ): Response<OrderResponse>
+
+    @GET("order/ongoing")
+    suspend fun getOngoingOrders(
+
+    ): Response<OngoingOrderResponse>
 
     // API to handle data updated by user and sending it to codeginiter
     @FormUrlEncoded

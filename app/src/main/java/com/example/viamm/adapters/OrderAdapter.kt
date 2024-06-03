@@ -7,9 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.viamm.databinding.ItemOrderBinding
-import com.example.viamm.models.Order.Orders
+import com.example.viamm.models.getOngoingOrder.OngoingOrder
 
-class OrderAdapter(private var orderList: List<Orders>, private val listener: RVListEvent) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
+class OrderAdapter(private var orderList: List<OngoingOrder>, private val listener: RVListEvent) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
 
     inner class OrderViewHolder(val binding: ItemOrderBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
@@ -48,7 +48,7 @@ class OrderAdapter(private var orderList: List<Orders>, private val listener: RV
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateOrders(newOrders: List<Orders>) {
+    fun updateOrders(newOrders: List<OngoingOrder>) {
         orderList = newOrders
         notifyDataSetChanged()
     }

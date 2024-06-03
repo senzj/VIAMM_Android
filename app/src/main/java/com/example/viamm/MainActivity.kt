@@ -87,6 +87,12 @@ class MainActivity : AppCompatActivity() {
                 logout()
                 true
             }
+
+            R.id.btn_scanner -> {
+                redirectToScanner()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -122,6 +128,12 @@ class MainActivity : AppCompatActivity() {
         finish() // Finish the current activity
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
     }
+
+//  Function to go Scanner Activity
+    private fun redirectToScanner() {
+        val intent = Intent(applicationContext, ScannerActivity::class.java)
+        startActivity(intent)
+}
 
 //    End of MainActivity ==========================================================================
 

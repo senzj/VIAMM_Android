@@ -14,8 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.viamm.adapters.OrderAdapter
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityOrderBinding
-import com.example.viamm.models.Order.Orders
-import com.example.viamm.storage.SharedData
+import com.example.viamm.models.getOngoingOrder.OngoingOrder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -28,7 +27,7 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
 
     private lateinit var binding: ActivityOrderBinding
     private lateinit var orderAdapter: OrderAdapter
-    private var orderList: List<Orders> = emptyList()
+    private var ongoingOrderList: List<OngoingOrder> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
 
 //    Fetching data from the API
@@ -37,13 +36,14 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
         // Fetch all orders
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
-                RetrofitClient.instance.getAllOrders()
+                RetrofitClient.instance.getOngoingOrders()
             } catch (e: IOException) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "App Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
                 Log.e("OrderActivity", "App error, details: ${e.message}")
                 return@launch
+
             } catch (e: HttpException) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "Http Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -55,7 +55,7 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {
                     val newOrders = response.body()!!.orders
-                    orderList = newOrders
+                    ongoingOrderList = newOrders
                     orderAdapter.updateOrders(newOrders)
                 }
             }
@@ -79,7 +79,7 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
         }
 
         // Initialize the adapter with an empty list
-        orderAdapter = OrderAdapter(orderList, this)
+        orderAdapter = OrderAdapter(ongoingOrderList, this)
 
         // Set the adapter and layout manager
         binding.rvOrders.apply {
@@ -99,7 +99,7 @@ class OrderActivity : AppCompatActivity(), OrderAdapter.RVListEvent {
     }
 
     override fun onItemClicked(position: Int) {
-        val selectedOrder = orderList[position]
+        val selectedOrder = ongoingOrderList[position]
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
         Log.d("OrderActivity", "Selected Order ID: ${selectedOrder.orderId} \nEmployee Name: ${selectedOrder.orderEmpName} \nStatus: ${selectedOrder.orderStatus}")
 

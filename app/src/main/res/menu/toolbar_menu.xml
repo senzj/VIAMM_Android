@@ -12,15 +12,9 @@
         <menu>
 
             <item
-                android:id="@+id/btn_mscan"
+                android:id="@+id/btn_scanner"
                 android:title="Money Scan"
                 android:icon="@drawable/baseline_camera_alt_24"
-                app:showAsAction="ifRoom|collapseActionView" />
-
-            <item
-                android:id="@+id/btn_settings"
-                android:title="Settings"
-                android:icon="@drawable/baseline_settings_24"
                 app:showAsAction="ifRoom|collapseActionView" />
 
             <item

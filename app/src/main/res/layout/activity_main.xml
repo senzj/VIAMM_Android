@@ -35,7 +35,7 @@
             android:id="@+id/btn_order"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Orders"
+            android:text="Services"
             android:textSize="20sp"
             android:padding="30dp"/>
 
