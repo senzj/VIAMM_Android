@@ -5,18 +5,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_background"
     android:id="@+id/login"
-    tools:context=".LoginActivity">
+    tools:context=".LoginActivity"
+    android:background="@drawable/viamm_bg"
+    >
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="84dp"
-        android:src="@drawable/viammlogo_sub"
+        android:layout_width="252dp"
+        android:layout_height="224dp"
+        android:layout_marginTop="48dp"
+        android:src="@drawable/viamm_logo"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -29,7 +30,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/logo"
-        app:layout_constraintVertical_bias="0.24">
+        app:layout_constraintVertical_bias="0.0">
 
         <TextView
             android:id="@+id/Welcome"
@@ -80,13 +81,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
-                android:inputType="textPassword"/>
+                android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/btn_login"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
+            android:layout_width="280dp"
+            android:layout_height="72dp"
             android:layout_below="@+id/field_password"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"

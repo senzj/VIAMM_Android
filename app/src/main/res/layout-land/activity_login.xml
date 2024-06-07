@@ -5,20 +5,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_background"
     android:id="@+id/login"
-    tools:context=".LoginActivity">
+    tools:context=".LoginActivity"
+    android:background="@drawable/viamm_bg"
+    >
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginStart="76dp"
-        android:src="@drawable/viammlogo_sub"
+        android:layout_width="210dp"
+        android:layout_height="214dp"
+        android:layout_marginStart="40dp"
+        android:src="@drawable/viamm_logo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.498" />
+        app:layout_constraintVertical_bias="0.497" />
 
     <RelativeLayout
         android:id="@+id/panel_middle"

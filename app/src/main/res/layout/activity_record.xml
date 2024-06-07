@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/record"
-    tools:context=".RecordActivity">
+    tools:context=".RecordActivity"
+    android:background="@drawable/viamm_bg"
+    >
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
