@@ -3,6 +3,7 @@ package com.example.viamm.api
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.models.Order.OrderResponse
+import com.example.viamm.models.Statistics.StatisticResponse
 import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
 import com.example.viamm.models.getOngoingOrder.OngoingOrderResponse
 import retrofit2.Call
@@ -50,4 +51,11 @@ interface Api {
         @Field("orderId") orderId: String,
         @Field("orderStatus") status: String
     ): Call<CancelOrderResponse>
+
+    // API handle statistics data to display to the graph
+    @FormUrlEncoded
+    @GET("order/stats")
+    fun getStats(
+        @Field("date") date: String
+    ): Call<StatisticResponse>
 }
