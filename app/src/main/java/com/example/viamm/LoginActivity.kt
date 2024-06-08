@@ -70,7 +70,7 @@ class LoginActivity : AppCompatActivity() {
                             response.body()?.let {
                                 loginResponse ->
                                 if (!loginResponse.error) {
-                                    SharedData.getInstance(applicationContext).saveUser(loginResponse.user)
+                                    SharedData.getInstance(applicationContext).saveUser(loginResponse.login)
                                     SharedData.getInstance(applicationContext).isLoggedIn = true // Set isLoggedIn to true if logged in details are correct
 
                                     val intent = Intent(applicationContext, MainActivity::class.java) // redirect to MainAcitvity if logged in is successful
