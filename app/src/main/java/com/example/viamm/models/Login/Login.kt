@@ -1,6 +1,6 @@
 package com.example.viamm.models.Login
 
-data class User(
+data class Login(
     val username: String,
     val password: String
 )
