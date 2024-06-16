@@ -18,7 +18,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:title="Orders"
+        app:title="Ongoing Bookings"
         app:contentInsetStartWithNavigation="0dp"
         app:contentInsetStart="0dp"
         app:contentInsetEnd="0dp"

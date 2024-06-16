@@ -103,15 +103,56 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
-        Log.d("OrderActivity", "BOOKING_ID: ${selectedOrder.orderId} \nBOOKING_STATUS: ${selectedOrder.orderStatus} \nTotal Amount: ${selectedOrder.totalCost}")
 
-        val intent = Intent(this, EditRecordActivity::class.java).apply {
-            putExtra("BOOKING_ID", selectedOrder.orderId)
-            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)
-            putExtra("BOOKING_AMOUNT", selectedOrder.totalCost)
+        // Prepare services list
+        val servicesList = ArrayList<ServiceRecord>()
+        selectedOrder.services.forEach { (serviceName, serviceDetails) ->
+            val service = ServiceRecord(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
+            servicesList.add(service)
         }
-        startActivity(intent)
+
+        // Prepare intent to start EditOrderActivity
+        val intent = Intent(this, EditRecordActivity::class.java).apply {
+            // Passing the basic data to EditOrderActivity
+            putExtra("BOOKING_ID", selectedOrder.orderId)
+            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)  // Corrected to match key expected by EditRecordActivity
+            putExtra("BOOKING_COST", selectedOrder.totalCost)
+
+            // Pass services list as ParcelableArrayList
+            putParcelableArrayListExtra("SERVICES", servicesList)
+
+            // Pass masseurs details individually
+            selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
+                putExtra("MASSEUR_NAME", masseurName)
+                putExtra("MASSEUR_IS_AVAILABLE", isAvailable)
+            }
+
+            // Pass locations details individually
+            selectedOrder.locations.forEach { (locationName, isAvailable) ->
+                putExtra("LOCATION_NAME", locationName)
+                putExtra("LOCATION_IS_AVAILABLE", isAvailable)
+            }
+        }
+        // Logging Data passed
+        Log.d("RecordActivity", "Selected Order ID: ${selectedOrder.orderId}")
+        Log.d("RecordActivity", "Selected Order Status: ${selectedOrder.orderStatus}")
+        Log.d("RecordActivity", "Selected Total Cost: ${selectedOrder.totalCost}")
+        Log.d("RecordActivity", "Selected Services: $servicesList")
+
+        selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
+            Log.d("RecordActivity", "Masseur Name: $masseurName")
+            Log.d("RecordActivity", "Masseur Availability: $isAvailable")
+        }
+
+        selectedOrder.locations.forEach { (locationName, isAvailable) ->
+            Log.d("RecordActivity", "Location Name: $locationName")
+            Log.d("RecordActivity", "Location Availability: $isAvailable")
+        }
+
+        // Start EditOrderActivity
+        startActivityForResult(intent, EDIT_ORDER_REQUEST_CODE)  // Use startActivityForResult
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)

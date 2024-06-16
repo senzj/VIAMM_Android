@@ -3,6 +3,9 @@ package com.example.viamm
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,7 +15,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.storage.SharedData
-import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.loadings.LoginLoading
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
@@ -42,6 +44,9 @@ class LoginActivity : AppCompatActivity() {
         loginBtn = findViewById(R.id.btn_login)
         CompName = findViewById(R.id.input_username)
         CompPass = findViewById(R.id.input_password)
+
+        setupFocusChangeListener(CompName)
+        setupFocusChangeListener(CompPass)
 
         loginBtn.setOnClickListener {
             val username = CompName.text.toString().trim()
@@ -122,6 +127,19 @@ class LoginActivity : AppCompatActivity() {
                     }
                 })
         }
+
+        // Set up the touch listener for the entire layout, to listen for clicks outside the EditText
+        findViewById<View>(R.id.login).setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                currentFocus?.let { view ->
+                    view.clearFocus()
+                    hideKeyboard(view)
+                }
+            }
+            // Ensure that performClick() is called to handle click events
+            v.performClick()
+            false
+        }
     }
 
     override fun onStart() {
@@ -133,5 +151,20 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
             Log.i("Login", "Already Logged in")
         }
+    }
+
+    //  When the focus changes or clicked anywhere, hide the keyboard
+    private fun setupFocusChangeListener(view: View) {
+        view.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                hideKeyboard(v)
+            }
+        }
+    }
+
+    //  Hide the keyboard function
+    private fun hideKeyboard(view: View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }

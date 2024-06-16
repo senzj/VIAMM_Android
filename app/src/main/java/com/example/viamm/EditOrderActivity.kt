@@ -2,12 +2,15 @@ package com.example.viamm
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
@@ -19,6 +22,7 @@ import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditOrderBinding
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
+import com.example.viamm.models.getOngoingOrder.ServiceOrder
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,7 +63,7 @@ class EditOrderActivity : AppCompatActivity() {
         val orderStatus = intent.getStringExtra("BOOKING_STATUS")
 
         // Retrieve list of services (ParcelableArrayList)
-        val services: ArrayList<Service>? = intent.getParcelableArrayListExtra("SERVICES")
+        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
 
         // Total Cost
         val totalCost = intent.getIntExtra("BOOKING_COST", 0)
@@ -83,37 +87,73 @@ class EditOrderActivity : AppCompatActivity() {
         Log.d("EditOrderActivity", "Location Availability: $locationAvailability")
 
         // Update UI components
-        binding.tvOrderID?.text = orderId
-        binding.tvOrderStatus?.text = orderStatus
+        binding.tvOrderID.text = orderId
+        binding.tvOrderStatus.text = orderStatus
         binding.tvTotalCost.text = "₱ $totalCost"
 
         // Populate the table with services dynamically
         services?.forEach { service ->
             val tableRow = TableRow(this)
+            Log.d("EditOrderActivity", "Service: $service")
 
-            // Amount
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Amount
             val amountTextView = TextView(this).apply {
                 layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
                 text = service.amount.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
             }
             tableRow.addView(amountTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
 
             // Service Name
             val serviceNameTextView = TextView(this).apply {
                 layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
                 text = service.name
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
             }
             tableRow.addView(serviceNameTextView)
 
-            // Price
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Price
             val priceTextView = TextView(this).apply {
                 layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
                 text = service.price.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
             }
             tableRow.addView(priceTextView)
 
-            // Add the TableRow to the TableLayout
-            binding.tblOrder?.addView(tableRow)
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            binding.tblOrder.addView(tableRow)
+
+            // Add horizontal line after each row
+            binding.tblOrder.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1.dpToPx())
+                setBackgroundColor(Color.DKGRAY)
+            })
         }
 
         // Set Payment button click listener to open camera (scanner Activity)
@@ -160,9 +200,14 @@ class EditOrderActivity : AppCompatActivity() {
         }
 
         // Set click listener for back button
-        binding.btnOrderBack?.setOnClickListener {
+        binding.btnOrderBack.setOnClickListener {
             finish()
         }
+    }
+
+    fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -185,7 +230,7 @@ class EditOrderActivity : AppCompatActivity() {
     }
 }
 
-data class Service(
+data class ServiceOrder(
     val amount: Int,
     val name: String,
     val price: Int,
@@ -210,13 +255,14 @@ data class Service(
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<Service> {
-        override fun createFromParcel(parcel: Parcel): Service {
-            return Service(parcel)
+    companion object CREATOR : Parcelable.Creator<ServiceOrder> {
+        override fun createFromParcel(parcel: Parcel): ServiceOrder {
+            return ServiceOrder(parcel)
         }
 
-        override fun newArray(size: Int): Array<Service?> {
+        override fun newArray(size: Int): Array<ServiceOrder?> {
             return arrayOfNulls(size)
         }
     }
 }
+

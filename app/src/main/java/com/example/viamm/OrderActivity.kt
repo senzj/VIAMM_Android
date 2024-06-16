@@ -109,9 +109,9 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
 
         // Prepare services list
-        val servicesList = ArrayList<Service>()
+        val servicesList = ArrayList<ServiceOrder>()
         selectedOrder.services.forEach { (serviceName, serviceDetails) ->
-            val service = Service(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
+            val service = ServiceOrder(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
             servicesList.add(service)
         }
 
