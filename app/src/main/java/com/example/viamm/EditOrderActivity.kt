@@ -3,10 +3,13 @@ package com.example.viamm
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ArrayAdapter
+import android.widget.TableRow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +19,6 @@ import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditOrderBinding
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
-import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -53,22 +55,66 @@ class EditOrderActivity : AppCompatActivity() {
         }
 
         // Retrieve the data from the Intent
-        val orderId = intent.getStringExtra("ORDER_ID")
-        val orderService = intent.getStringExtra("ORDER_SERVICE")
-        val orderEmpName = intent.getStringExtra("ORDER_EMP_NAME")
-        val orderStatus = intent.getStringExtra("ORDER_STATUS")
+        val orderId = intent.getStringExtra("BOOKING_ID")
+        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
+
+        // Retrieve list of services (ParcelableArrayList)
+        val services: ArrayList<Service>? = intent.getParcelableArrayListExtra("SERVICES")
+
+        // Total Cost
+        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+
+        // Other data for debugging and future use
+        // Masseur
+        val masseurName = intent.getStringExtra("MASSEUR_NAME")
+        val masseurAvailability = intent.getBooleanExtra("MASSEUR_IS_AVAILABLE", false)
+
+        // Location
+        val locationName = intent.getStringExtra("LOCATION_NAME")
+        val locationAvailability = intent.getBooleanExtra("LOCATION_IS_AVAILABLE", false)
 
         // Log or use the data as needed
         Log.d("EditOrderActivity", "Order ID: $orderId")
-        Log.d("EditOrderActivity", "Order Service: $orderService")
-        Log.d("EditOrderActivity", "Employee Name: $orderEmpName")
         Log.d("EditOrderActivity", "Order Status: $orderStatus")
+        Log.d("EditOrderActivity", "Total Cost: $totalCost")
+        Log.d("EditOrderActivity", "Masseur Name: $masseurName")
+        Log.d("EditOrderActivity", "Masseur Availability: $masseurAvailability")
+        Log.d("EditOrderActivity", "Location Name: $locationName")
+        Log.d("EditOrderActivity", "Location Availability: $locationAvailability")
 
-        // Update the UI or perform actions with the retrieved data
-        binding.tvOrderID.text = "$orderId"
-        binding.ETOrderService.setText(orderService)
-        binding.ETOrderEmpName.setText(orderEmpName)
+        // Update UI components
+        binding.tvOrderID?.text = orderId
+        binding.tvOrderStatus?.text = orderStatus
+        binding.tvTotalCost.text = "₱ $totalCost"
 
+        // Populate the table with services dynamically
+        services?.forEach { service ->
+            val tableRow = TableRow(this)
+
+            // Amount
+            val amountTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.amount.toString()
+            }
+            tableRow.addView(amountTextView)
+
+            // Service Name
+            val serviceNameTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
+                text = service.name
+            }
+            tableRow.addView(serviceNameTextView)
+
+            // Price
+            val priceTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.price.toString()
+            }
+            tableRow.addView(priceTextView)
+
+            // Add the TableRow to the TableLayout
+            binding.tblOrder?.addView(tableRow)
+        }
 
         // Set Payment button click listener to open camera (scanner Activity)
         binding.btnOrderPayment.setOnClickListener {
@@ -77,10 +123,9 @@ class EditOrderActivity : AppCompatActivity() {
             finish()
         }
 
-
         // Set click listener for cancel button
         binding.btnCancelOrder.setOnClickListener {
-            val updatedStatus = "Cancelled"
+            val updatedStatus = "CANCELLED"
 
             // Call the cancelOrder API endpoint
             api.updateOrderStatus(orderId!!, updatedStatus)
@@ -115,27 +160,8 @@ class EditOrderActivity : AppCompatActivity() {
         }
 
         // Set click listener for back button
-        binding.btnOrderBack.setOnClickListener {
+        binding.btnOrderBack?.setOnClickListener {
             finish()
-        }
-
-        // Set up the Spinner with the array resource
-        ArrayAdapter.createFromResource(
-            this,
-            R.array.order_status_options, // order_status_options is from value>string
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding.spOrderStatus.adapter = adapter
-
-            // Set the Spinner's selection to match the passed order status
-            orderStatus?.let {
-                val statusOptions = resources.getStringArray(R.array.order_status_options)
-                val index = statusOptions.indexOf(it)
-                if (index >= 0) {
-                    binding.spOrderStatus.setSelection(index)
-                }
-            }
         }
     }
 
@@ -157,5 +183,40 @@ class EditOrderActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+}
 
+data class Service(
+    val amount: Int,
+    val name: String,
+    val price: Int,
+    val type: String
+) : Parcelable {
+
+    constructor(parcel: Parcel) : this(
+        parcel.readInt(),
+        parcel.readString() ?: "",
+        parcel.readInt(),
+        parcel.readString() ?: ""
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(amount)
+        parcel.writeString(name)
+        parcel.writeInt(price)
+        parcel.writeString(type)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<Service> {
+        override fun createFromParcel(parcel: Parcel): Service {
+            return Service(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Service?> {
+            return arrayOfNulls(size)
+        }
+    }
 }

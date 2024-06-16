@@ -12,9 +12,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.viamm.adapters.CompletedOrderAdapter
-import com.example.viamm.adapters.OngoingOrderAdapter
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityRecordBinding
+import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.Order.Orders
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -24,15 +24,20 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 
-class RecordActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
+class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
 
     private lateinit var binding: ActivityRecordBinding
     private lateinit var orderAdapter: CompletedOrderAdapter
     private var orderList: List<Orders> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
+    private lateinit var loadingDialog: LoadingDialog
 
     // Fetching data from the API
     private fun fetchData() {
+        // Show loading dialog
+        loadingDialog.show()
+
+        // Fetch data from the API
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
                 RetrofitClient.instance.getCompletedOrders()
@@ -57,6 +62,9 @@ class RecordActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
                     orderAdapter.updateOrders(newOrders)
                 }
             }
+
+            // Dismiss loading dialog
+            loadingDialog.dismiss()
         }
     }
 
@@ -73,6 +81,8 @@ class RecordActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
+
+        loadingDialog = LoadingDialog(this)
 
         orderAdapter = CompletedOrderAdapter(orderList, this)
 
@@ -93,13 +103,12 @@ class RecordActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
-        Log.d("RecordActivity", "Selected Order ID: ${selectedOrder.orderId} \nEmployee Name: ${selectedOrder.orderEmpName} \nStatus: ${selectedOrder.orderStatus}")
+        Log.d("OrderActivity", "BOOKING_ID: ${selectedOrder.orderId} \nBOOKING_STATUS: ${selectedOrder.orderStatus} \nTotal Amount: ${selectedOrder.totalCost}")
 
         val intent = Intent(this, EditRecordActivity::class.java).apply {
-            putExtra("ORDER_ID", selectedOrder.orderId)
-            putExtra("ORDER_SERVICE", selectedOrder.orderService)
-            putExtra("ORDER_EMP_NAME", selectedOrder.orderEmpName)
-            putExtra("ORDER_STATUS", selectedOrder.orderStatus)
+            putExtra("BOOKING_ID", selectedOrder.orderId)
+            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)
+            putExtra("BOOKING_AMOUNT", selectedOrder.totalCost)
         }
         startActivity(intent)
     }

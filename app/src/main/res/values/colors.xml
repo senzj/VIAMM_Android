@@ -9,5 +9,6 @@
 
 <!--    Toolbar colors-->
     <color name="toolbarColor">#7f421f</color>
+    <color name="APpColor">#7f421f</color>
 
 </resources>

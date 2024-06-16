@@ -46,7 +46,7 @@ interface Api {
 
     // API to handle data updated status by user and sending it to codeginiter
     @FormUrlEncoded
-    @POST("order/updatestatus")
+    @POST("order/cancelled")
     fun updateOrderStatus(
         @Field("orderId") orderId: String,
         @Field("orderStatus") status: String

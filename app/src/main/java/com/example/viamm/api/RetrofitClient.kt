@@ -10,7 +10,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 object RetrofitClient {
 
     // Encode username and password using OkHttp's Credentials utility
-    private val basicAuth = Credentials.basic("admin", "1234")
+    private val basicAuth = Credentials.basic("aDm1n%v1AmM", "1A7*ajHy6p\$ag5")
 
 
     private val okHttpClient: OkHttpClient by lazy {

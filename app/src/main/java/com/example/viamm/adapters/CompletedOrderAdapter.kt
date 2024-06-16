@@ -41,9 +41,8 @@ class CompletedOrderAdapter(private var orderList: List<Orders>, private val lis
         val currentOrder = orderList[position]
         holder.binding.apply {
             tvOrderId.text = "Order ID: ${currentOrder.orderId}"
-            tvOrderService.text = "Service: ${currentOrder.orderService}"
-            tvOrderEmpName.text = "Employee Name: ${currentOrder.orderEmpName}"
             tvOrderStatus.text = "Status: ${currentOrder.orderStatus}"
+            tvOrderTotal.text = "Total: ${currentOrder.totalCost}"
         }
         Log.d("OrderAdapter", "onBindViewHolder: $currentOrder")
     }
