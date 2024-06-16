@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/editrecord"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/viamm_bg"
@@ -11,91 +10,54 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:layout_marginTop="28dp"
         android:background="@color/toolbarColor"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:contentInsetEnd="0dp"
-        app:contentInsetStart="0dp"
-        app:contentInsetStartWithNavigation="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Booking Order" />
 
+    <TextView
+        android:id="@+id/tvRecordID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp"
+        android:text="Booking Number:"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <TextView
+        android:id="@+id/tvRecordStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="Booking Status:"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvRecordID" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/innerLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="5dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.0">
-
-        <TextView
-            android:id="@+id/textOrder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="16dp"
-            android:text="Booking Number:"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tvRecordID"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textOrder"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textOrder" />
-
-        <TextView
-            android:id="@+id/textStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
-            android:text="Booking Status:"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textOrder" />
-
-        <TextView
-            android:id="@+id/tvRecordStatus"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textStatus"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textOrder" />
+        app:layout_constraintTop_toBottomOf="@id/tvRecordStatus"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <ScrollView
             android:id="@+id/sv_tbl_rec"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvRecordStatus"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/textCost">
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/textCost">
 
             <TableLayout
                 android:id="@+id/tblRecord"
@@ -110,41 +72,41 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:gravity="center_horizontal"
                         android:padding="4dp"
                         android:text="Amount"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold"
-                        android:gravity="center_horizontal"/>
+                        android:textStyle="bold" />
 
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                        android:background="@android:color/darker_gray" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
+                        android:gravity="center_horizontal"
                         android:padding="4dp"
                         android:text="Service"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold"
-                        android:gravity="center_horizontal"/>
+                        android:textStyle="bold" />
 
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                        android:background="@android:color/darker_gray" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:gravity="center_horizontal"
                         android:padding="4dp"
                         android:text="Price"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold"
-                        android:gravity="center_horizontal"/>
+                        android:textStyle="bold" />
 
                 </TableRow>
 
@@ -178,16 +140,13 @@
 
         <Button
             android:id="@+id/btnRecordBack"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"
             android:backgroundTint="@color/bluegreen"
             android:text="Back"
             android:textColor="@color/white"
-            app:layout_constraintTop_toBottomOf="@id/tvTotalCost"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textCost"
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

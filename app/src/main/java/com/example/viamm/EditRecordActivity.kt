@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditRecordBinding
@@ -28,10 +29,13 @@ class EditRecordActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
 
         binding = ActivityEditRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Set the status bar color
+        window.statusBarColor = ContextCompat.getColor(this, R.color.StatusBarColor)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
@@ -57,9 +61,9 @@ class EditRecordActivity : AppCompatActivity() {
         Log.d("EditRecordActivity", "Booking Status: $orderStatus")
         Log.d("EditRecordActivity", "Total Cost: $totalCost")
 
-        binding.tvRecordID?.text = "Booking ID: $orderId"
-        binding.tvRecordStatus?.text = "Booking Status: $orderStatus"
-        binding.tvTotalCost?.text = "₱ $totalCost"
+        binding.tvRecordID.text = "Booking ID: $orderId"
+        binding.tvRecordStatus.text = "Booking Status: $orderStatus"
+        binding.tvTotalCost.text = "₱ $totalCost"
 
         services?.forEach { service ->
             val tableRow = TableRow(this)

@@ -237,13 +237,6 @@ data class ServiceOrder(
     val type: String
 ) : Parcelable {
 
-    constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.readString() ?: ""
-    )
-
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(amount)
         parcel.writeString(name)
