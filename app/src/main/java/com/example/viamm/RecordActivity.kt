@@ -16,6 +16,7 @@ import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityRecordBinding
 import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.Order.Orders
+import com.example.viamm.models.Order.ServiceRecord
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -168,8 +169,20 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
                 finish()
                 true
             }
+
+            R.id.btn_scanner -> {
+                redirectToScanner()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    //  Function to go Scanner Activity
+    private fun redirectToScanner() {
+        val intent = Intent(applicationContext, ScannerActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onResume() {
