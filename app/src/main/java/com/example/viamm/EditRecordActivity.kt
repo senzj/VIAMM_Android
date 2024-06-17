@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditRecordBinding
+import com.example.viamm.models.Order.ServiceRecord
 import retrofit2.Response
 
 class EditRecordActivity : AppCompatActivity() {
@@ -120,10 +121,10 @@ class EditRecordActivity : AppCompatActivity() {
                 setBackgroundColor(Color.DKGRAY)
             })
 
-            binding.tblRecord?.addView(tableRow)
+            binding.tblRecord.addView(tableRow)
 
             // Add horizontal line after each row
-            binding.tblRecord?.addView(View(this).apply {
+            binding.tblRecord.addView(View(this).apply {
                 layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1.dpToPx())
                 setBackgroundColor(Color.DKGRAY)
             })
@@ -165,42 +166,6 @@ class EditRecordActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-}
-
-data class ServiceRecord(
-    val amount: Int,
-    val name: String,
-    val price: Int,
-    val type: String
-) : Parcelable {
-
-    constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.readString() ?: ""
-    )
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(amount)
-        parcel.writeString(name)
-        parcel.writeInt(price)
-        parcel.writeString(type)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<ServiceRecord> {
-        override fun createFromParcel(parcel: Parcel): ServiceRecord {
-            return ServiceRecord(parcel)
-        }
-
-        override fun newArray(size: Int): Array<ServiceRecord?> {
-            return arrayOfNulls(size)
         }
     }
 }

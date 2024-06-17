@@ -230,32 +230,3 @@ class EditOrderActivity : AppCompatActivity() {
     }
 }
 
-data class ServiceOrder(
-    val amount: Int,
-    val name: String,
-    val price: Int,
-    val type: String
-) : Parcelable {
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(amount)
-        parcel.writeString(name)
-        parcel.writeInt(price)
-        parcel.writeString(type)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<ServiceOrder> {
-        override fun createFromParcel(parcel: Parcel): ServiceOrder {
-            return ServiceOrder(parcel)
-        }
-
-        override fun newArray(size: Int): Array<ServiceOrder?> {
-            return arrayOfNulls(size)
-        }
-    }
-}
-
