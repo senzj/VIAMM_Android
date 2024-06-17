@@ -4,9 +4,9 @@
 
     <!-- Define an array resource for the Spinner options -->
     <string-array name="order_status_options">
-        <item>Ongoing</item>
-        <item>Cancelled</item>
-        <item>Finished</item>
+        <item>ONGOING</item>
+        <item>CANCELLED</item>
+        <item>COMPLETED</item>
     </string-array>
 
 </resources>

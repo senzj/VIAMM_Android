@@ -14,10 +14,9 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/lavender"
+        android:background="@color/toolbarColor"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
-        app:logo="@drawable/leaf"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Dashboard"
         tools:layout_editor_absoluteX="1dp" />

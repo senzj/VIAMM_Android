@@ -1,24 +1,25 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
-import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ArrayAdapter
+import android.view.View
+import android.widget.TableRow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.ContextCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditRecordBinding
-import com.example.viamm.models.CancelOrder.CancelOrderResponse
-import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
-import retrofit2.Call
-import retrofit2.Callback
+import com.example.viamm.models.Order.ServiceRecord
 import retrofit2.Response
 
 class EditRecordActivity : AppCompatActivity() {
@@ -26,12 +27,16 @@ class EditRecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditRecordBinding
     private lateinit var api: Api
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
 
         binding = ActivityEditRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Set the status bar color
+        window.statusBarColor = ContextCompat.getColor(this, R.color.StatusBarColor)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
@@ -42,108 +47,115 @@ class EditRecordActivity : AppCompatActivity() {
         api = RetrofitClient.instance
 
         // Retrieve the data from the Intent
-        val orderId = intent.getStringExtra("ORDER_ID")
-        val orderService = intent.getStringExtra("ORDER_SERVICE")
-        val orderEmpName = intent.getStringExtra("ORDER_EMP_NAME")
-        val orderStatus = intent.getStringExtra("ORDER_STATUS")
+        val orderId = intent.getStringExtra("BOOKING_ID")
+        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
+        val services: ArrayList<ServiceRecord>? = intent.getParcelableArrayListExtra("SERVICES")
+        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
 
-        // Log or use the data as needed
-        Log.d("EditOrderActivity", "Order ID: $orderId")
-        Log.d("EditOrderActivity", "Order Service: $orderService")
-        Log.d("EditOrderActivity", "Employee Name: $orderEmpName")
-        Log.d("EditOrderActivity", "Order Status: $orderStatus")
+//        for future uses
+//        val masseurName = intent.getStringExtra("MASSEUR_NAME")
+//        val masseurAvailability = intent.getBooleanExtra("MASSEUR_IS_AVAILABLE", false)
+//        val locationName = intent.getStringExtra("LOCATION_NAME")
+//        val locationAvailability = intent.getBooleanExtra("LOCATION_IS_AVAILABLE", false)
 
-        // Update the UI with the retrieved data
-        binding.tvOrderID.text = orderId
-        binding.ETOrderService.setText(orderService)
-        binding.ETOrderEmpName.setText(orderEmpName)
+        Log.d("EditRecordActivity", "Booking ID: $orderId")
+        Log.d("EditRecordActivity", "Booking Status: $orderStatus")
+        Log.d("EditRecordActivity", "Total Cost: $totalCost")
 
-        // Set click listener for Edit button
-        binding.btnRecordEdit.setOnClickListener {
-            val updatedService = binding.ETOrderService.text.toString()
-            val updatedEmpName = binding.ETOrderEmpName.text.toString()
-            val updatedStatus = binding.spOrderStatus.selectedItem.toString()
+        binding.tvRecordID.text = "Booking ID: $orderId"
+        binding.tvRecordStatus.text = "Booking Status: $orderStatus"
+        binding.tvTotalCost.text = "₱ $totalCost"
 
-            orderId?.let { orderId ->
-                api.updateOrder(orderId, updatedService, updatedEmpName, updatedStatus)
-                    .enqueue(object : Callback<UpdateOrdersResponse> {
-                        override fun onResponse(
-                            call: Call<UpdateOrdersResponse>,
-                            response: Response<UpdateOrdersResponse>
-                        ) {
-                            if (response.isSuccessful) {
-                                // Show success message
-                                Toast.makeText(
-                                    this@EditRecordActivity,
-                                    "Order ID \"$orderId\" Updated Successfully!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                Log.d(
-                                    "EditOrderActivity",
-                                    "Order Updated Successfully! Redirecting to OrderActivity"
-                                )
+        services?.forEach { service ->
+            val tableRow = TableRow(this)
+            Log.d("EditRecordActivity", "Service: $service")
 
-                                // Set result for the previous activity
-                                val resultIntent = Intent()
-                                resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
-                                setResult(RESULT_OK, resultIntent)
-                                finish()
-                            } else {
-                                handleErrorResponse(response)
-                            }
-                        }
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
 
-                        override fun onFailure(call: Call<UpdateOrdersResponse>, t: Throwable) {
-                            handleFailure(t)
-                        }
-                    })
+            // Service Amount
+            val amountTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.amount.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
             }
+            tableRow.addView(amountTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Name
+            val serviceNameTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
+                text = service.name
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+            }
+            tableRow.addView(serviceNameTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Price
+            val priceTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.price.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+            }
+            tableRow.addView(priceTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            binding.tblRecord.addView(tableRow)
+
+            // Add horizontal line after each row
+            binding.tblRecord.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1.dpToPx())
+                setBackgroundColor(Color.DKGRAY)
+            })
         }
 
-
-        // Set click listener for back button
         binding.btnRecordBack.setOnClickListener {
             finish()
         }
+    }
 
-        // Set up the Spinner with the array resource
-        ArrayAdapter.createFromResource(
-            this,
-            R.array.order_status_options,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding.spOrderStatus.adapter = adapter
-
-            // Set the Spinner's selection to match the passed order status
-            orderStatus?.let {
-                val statusOptions = resources.getStringArray(R.array.order_status_options)
-                val index = statusOptions.indexOf(it)
-                if (index >= 0) {
-                    binding.spOrderStatus.setSelection(index)
-                }
-            }
-        }
+    // Extension function to convert dp to pixels
+    fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 
     private fun handleErrorResponse(response: Response<*>) {
         val errorBody = response.errorBody()?.string()
         val errorMessage = errorBody ?: "An Error Occurred. Failed to Update the Requested Order."
         Toast.makeText(this@EditRecordActivity, errorMessage, Toast.LENGTH_LONG).show()
-        Log.d("EditOrderActivity", "An Error Occurred $response.")
+        Log.d("EditRecordActivity", "An Error Occurred $response.")
     }
 
     private fun handleFailure(t: Throwable) {
         Toast.makeText(this@EditRecordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-        Log.d("EditOrderActivity", "Error: ${t.message}")
+        Log.d("EditRecordActivity", "Error: ${t.message}")
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
-
-        // Remove the logout button if it exists
         menu?.findItem(R.id.btn_logout)?.isVisible = false
-
         return true
     }
 
@@ -153,10 +165,7 @@ class EditRecordActivity : AppCompatActivity() {
                 finish()
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 }
-
-

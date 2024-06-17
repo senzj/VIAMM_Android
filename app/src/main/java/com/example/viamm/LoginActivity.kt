@@ -3,6 +3,9 @@ package com.example.viamm
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.storage.SharedData
+import com.example.viamm.loadings.LoginLoading
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
@@ -19,10 +23,10 @@ import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
-    // variable declaration
-    lateinit var loginBtn: Button
-    lateinit var CompName: TextInputEditText
-    lateinit var CompPass: TextInputEditText
+    private lateinit var loginBtn: Button
+    private lateinit var CompName: TextInputEditText
+    private lateinit var CompPass: TextInputEditText
+    private lateinit var loadingDialog: LoginLoading
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +39,15 @@ class LoginActivity : AppCompatActivity() {
             insets
         }
 
+        loadingDialog = LoginLoading(this)
+
         loginBtn = findViewById(R.id.btn_login)
         CompName = findViewById(R.id.input_username)
         CompPass = findViewById(R.id.input_password)
 
-        // login button click listener
+        setupFocusChangeListener(CompName)
+        setupFocusChangeListener(CompPass)
+
         loginBtn.setOnClickListener {
             val username = CompName.text.toString().trim()
             val password = CompPass.text.toString().trim()
@@ -55,25 +63,33 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Show loading dialog
+            loadingDialog.show()
+
             // Log the request details
             Log.d("LoginActivity", "Attempting login with username: $username")
 
             RetrofitClient.instance.login(username, password)
                 .enqueue(object : Callback<LoginResponse> {
                     override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                        // Dismiss loading dialog on failure
+                        loadingDialog.dismiss()
+
                         Toast.makeText(applicationContext, t.message, Toast.LENGTH_LONG).show()
                         Log.e("Login", "onFailure: ${t.message}", t)
                     }
 
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                        if (response.isSuccessful) {
-                            response.body()?.let {
-                                loginResponse ->
-                                if (!loginResponse.error) {
-                                    SharedData.getInstance(applicationContext).saveUser(loginResponse.login)
-                                    SharedData.getInstance(applicationContext).isLoggedIn = true // Set isLoggedIn to true if logged in details are correct
+                        // Dismiss loading dialog on response
+                        loadingDialog.dismiss()
 
-                                    val intent = Intent(applicationContext, MainActivity::class.java) // redirect to MainAcitvity if logged in is successful
+                        if (response.isSuccessful) {
+                            response.body()?.let { loginResponse ->
+                                if (!loginResponse.error) {
+                                    SharedData.getInstance(applicationContext).saveUser(loginResponse.user)
+                                    SharedData.getInstance(applicationContext).isLoggedIn = true
+
+                                    val intent = Intent(applicationContext, MainActivity::class.java)
                                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     startActivity(intent)
 
@@ -83,7 +99,6 @@ class LoginActivity : AppCompatActivity() {
                                 } else {
                                     // Show the server error message
                                     Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
-
                                     Log.e("Login", "An Error Occurred: ${loginResponse.message}")
                                 }
 
@@ -93,18 +108,14 @@ class LoginActivity : AppCompatActivity() {
                             }
 
                         } else {
-
                             // Handle different HTTP response codes
                             when (response.code()) {
-
-                                // if error returned 401 from the server
                                 401 -> {
                                     val errorMessage = "Incorrect Username or Password"
                                     // Unauthorized - Incorrect credentials
                                     Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
                                     Log.e("Login", "Failed: $errorMessage")
                                 }
-
                                 else -> {
                                     // Other errors
                                     val errorBody = response.errorBody()?.string()
@@ -114,22 +125,46 @@ class LoginActivity : AppCompatActivity() {
                             }
                         }
                     }
-
                 })
+        }
+
+        // Set up the touch listener for the entire layout, to listen for clicks outside the EditText
+        findViewById<View>(R.id.login).setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                currentFocus?.let { view ->
+                    view.clearFocus()
+                    hideKeyboard(view)
+                }
+            }
+            // Ensure that performClick() is called to handle click events
+            v.performClick()
+            false
         }
     }
 
-    // check if user is already logged in
     override fun onStart() {
         super.onStart()
-
+        // Check if user is already logged in
         if (SharedData.getInstance(this).isLoggedIn) {
             val intent = Intent(applicationContext, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-
             Log.i("Login", "Already Logged in")
         }
     }
-    // end of onStart()
+
+    //  When the focus changes or clicked anywhere, hide the keyboard
+    private fun setupFocusChangeListener(view: View) {
+        view.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                hideKeyboard(v)
+            }
+        }
+    }
+
+    //  Hide the keyboard function
+    private fun hideKeyboard(view: View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
 }

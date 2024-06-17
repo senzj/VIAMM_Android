@@ -20,27 +20,27 @@
         tools:targetApi="33">
         <activity
             android:name=".EditRecordActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ScannerActivity"
-            android:exported="false" /> <!-- Edit Order Activity -->
+            android:exported="true" />
         <activity
             android:name=".EditOrderActivity"
             android:exported="true"
-            android:parentActivityName=".OrderActivity" /> <!-- Statistics Activity -->
+            android:parentActivityName=".OrderActivity" />
         <activity
             android:name=".StatisticsActivity"
             android:exported="true"
-            android:parentActivityName=".MainActivity" /> <!-- Record Activity -->
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".RecordActivity"
             android:exported="true"
-            android:parentActivityName=".MainActivity" /> <!-- Order Activity -->
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".OrderActivity"
             android:exported="true"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Base.Theme.VIAMM" /> <!-- Login Activity -->
+            android:theme="@style/Base.Theme.VIAMM" />
         <activity
             android:name=".LoginActivity"
             android:exported="true"
@@ -50,7 +50,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Main Activity -->
+        </activity>
         <activity
             android:name=".MainActivity"
             android:exported="true"

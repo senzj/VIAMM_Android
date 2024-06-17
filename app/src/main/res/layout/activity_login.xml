@@ -86,11 +86,13 @@
 
         <Button
             android:id="@+id/btn_login"
-            android:layout_width="280dp"
+            android:layout_width="match_parent"
             android:layout_height="72dp"
             android:layout_below="@+id/field_password"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
+            android:backgroundTint="@color/APpColor"
+            android:shadowRadius="@integer/material_motion_duration_long_1"
             android:text="LOG IN"
             android:textStyle="bold" />
 

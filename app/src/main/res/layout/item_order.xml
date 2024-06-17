@@ -20,17 +20,17 @@
             android:id="@+id/tvOrderId"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Order ID"
+            android:text="Booking ID"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvOrderService"
+            android:id="@+id/tvOrderStatus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Service Type"
+            android:text="Booking Status"
             android:textSize="20sp"
             android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -38,26 +38,15 @@
             app:layout_constraintTop_toBottomOf="@+id/tvOrderId" />
 
         <TextView
-            android:id="@+id/tvOrderEmpName"
+            android:id="@+id/tvOrderTotal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Employee Name"
+            android:text="Total Amount"
             android:textSize="20sp"
             android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvOrderService" />
-
-        <TextView
-            android:id="@+id/tvOrderStatus"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Service Status"
-            android:textSize="20sp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvOrderEmpName" />
+            app:layout_constraintTop_toBottomOf="@+id/tvOrderStatus" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

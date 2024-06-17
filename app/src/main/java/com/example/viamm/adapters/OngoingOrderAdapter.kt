@@ -40,9 +40,8 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
         val currentOrder = orderList[position]
         holder.binding.apply {
             tvOrderId.text = "Order ID: ${currentOrder.orderId}"
-            tvOrderService.text = "Service: ${currentOrder.orderService}"
-            tvOrderEmpName.text = "Employee Name: ${currentOrder.orderEmpName}"
             tvOrderStatus.text = "Status: ${currentOrder.orderStatus}"
+            tvOrderTotal.text = "Amount: ${currentOrder.totalCost}"
         }
         Log.d("OrderAdapter", "onBindViewHolder: $currentOrder")
     }
