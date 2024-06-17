@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Initialize toolbar
-        val toolbar: Toolbar? = binding.toolbar
+        val toolbar: Toolbar = binding.toolbar
         setSupportActionBar(toolbar)
 
         // Initialize buttons
