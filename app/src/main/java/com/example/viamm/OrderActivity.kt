@@ -16,6 +16,7 @@ import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityOrderBinding
 import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.getOngoingOrder.OngoingOrder
+import com.example.viamm.models.getOngoingOrder.ServiceOrder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
