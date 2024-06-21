@@ -1,0 +1,7 @@
+1_new
+1_old
+5_new
+5_old
+10_new
+10_old
+20_coin
