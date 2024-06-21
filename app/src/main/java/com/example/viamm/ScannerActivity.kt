@@ -20,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.Tensor
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
@@ -27,9 +28,9 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.nio.ByteBuffer
 
 class ScannerActivity : AppCompatActivity() {
-
     lateinit var imageProcessor: ImageProcessor
     lateinit var bitmap: Bitmap
     lateinit var imageView: ImageView
@@ -39,7 +40,6 @@ class ScannerActivity : AppCompatActivity() {
     lateinit var handler: Handler
     lateinit var interpreter: Interpreter
     lateinit var labels: List<String>
-
     var colors = listOf(
         Color.BLUE, Color.GREEN, Color.RED, Color.CYAN, Color.GRAY, Color.BLACK,
         Color.DKGRAY, Color.MAGENTA, Color.YELLOW, Color.RED
@@ -58,10 +58,10 @@ class ScannerActivity : AppCompatActivity() {
         val modelFile = FileUtil.loadMappedFile(this, "detect.tflite")
         interpreter = Interpreter(modelFile)
 
-        //GPU delagation for performance
+        // GPU delegation for performance
         try {
             val compatList = CompatibilityList()
-            val options = if(compatList.isDelegateSupportedOnThisDevice) {
+            val options = if (compatList.isDelegateSupportedOnThisDevice) {
                 Log.d("GPU Delegate", "Using GPU delegate")
                 val delegateOptions = compatList.bestOptionsForThisDevice
                 val gpuDelegate = GpuDelegate(delegateOptions)
@@ -93,20 +93,14 @@ class ScannerActivity : AppCompatActivity() {
             }
 
             override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {}
-
             override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                 return false
             }
 
             override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
-
-                // Log ImageView dimensions
-                Log.d("ImageView Dimensions", "Width: ${imageView.width}, Height: ${imageView.height}")
-
                 // Calculate scaling factor based on smaller dimension
                 val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
 
-                // Calculate aspect ratio scaling factors
                 val currentBitmap = textureView.bitmap
                 if (currentBitmap != null) {
                     bitmap = currentBitmap // Only assign if not null
@@ -127,24 +121,43 @@ class ScannerActivity : AppCompatActivity() {
                     val inputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 320, 320, 3), DataType.FLOAT32)
                     inputBuffer.loadBuffer(image.tensorBuffer.buffer)
 
-                    // Correctly sized output buffers
-                    val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // 10 detections, each with 4 coordinates
-                    val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection classes
-                    val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection scores
-                    val outputDetections = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Number of detections
+                    // Allocate output buffers with appropriate sizes
+                    val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Bounding box locations
+                    val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Detection classes
+                    val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Detection scores
+                    val outputDetections = TensorBuffer.createFixedSize(intArrayOf(10), DataType.FLOAT32) // Number of detections
+
+                    Log.d("TENSOR LOG", "Locations: ${outputLocations.buffer}")
+
+                    // Prepare a map for the output buffers
+                    val outputMap = mapOf(
+                        0 to outputScores.buffer, // Detection scores (identifier 339)
+                        1 to outputClasses.buffer, // Detection classes (identifier 338)
+                        2 to outputLocations.buffer, // Detection boxes (identifier 337)
+                        3 to outputDetections.buffer // Number of detections (identifier 340)
+                    )
 
                     // Run inference
-                    interpreter.run(inputBuffer.buffer, outputLocations.buffer)
-                    interpreter.run(inputBuffer.buffer, outputClasses.buffer)
-                    interpreter.run(inputBuffer.buffer, outputScores.buffer)
-                    interpreter.run(inputBuffer.buffer, outputDetections.buffer)
+                    interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer.buffer), outputMap)
 
-                    val locations = outputLocations.floatArray
-                    val classes = outputClasses.floatArray
+                    val detectionBoxesTensor = interpreter.getOutputTensor(1)
+                    val rawLocationsBuffer = getTensorBufferUsingReflection(detectionBoxesTensor) // Pass the Tensor object
+                    val rawLocationsBytes = ByteArray(rawLocationsBuffer.remaining())
+                    rawLocationsBuffer.get(rawLocationsBytes)
+
+                    // Extract output data
+                    val numDetections = outputDetections.floatArray[0].toInt()
+                    val coordinatesPerDetection = 4
                     val scores = outputScores.floatArray
-                    val numberOfDetections = outputDetections.floatArray[0] // Get number of detections as an integer
+                    val classes = outputClasses.floatArray
 
-                    Log.d("TENSOR LOG", "Number of Detections: $numberOfDetections")
+                    Log.d("Raw Bytes", "Raw location byte (Before Norm): ${rawLocationsBytes.contentToString()}")
+
+                    Log.d("TENSOR LOG", "Number of Detections: $numDetections")
+                    for (i in 0 until interpreter.outputTensorCount) {
+                        val tensor = interpreter.getOutputTensor(i)
+                        Log.d("TENSOR LOG", "Output Tensor $i Shape: ${tensor.shape().joinToString(", ")}")
+                    }
 
                     // Create a mutable bitmap for drawing
                     val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -156,55 +169,43 @@ class ScannerActivity : AppCompatActivity() {
                     paint.textSize = h / 15f
                     paint.strokeWidth = h / 150f
 
-                    for (i in 0 until scores.size) {
-
+                    for (i in 0 until numDetections) {
                         val score = scores[i]
 
-                        if (score > 0.35 && i != 0) {
-                            val x = i * 4
-                            val ymin = locations[x]
-                            val xmin = locations[x + 1]
-                            val ymax= locations[x + 2]
-                            val xmax = locations[x + 3]
+                        if (score > 0.35) {
+                            val startIndex = i * coordinatesPerDetection
+                            // Check if enough coordinates are available
+                            if (startIndex + 3 < rawLocationsBytes.size) {
+                                val ymin = (rawLocationsBytes[startIndex].toInt() and 0xFF) / 255.0f
+                                val xmin = (rawLocationsBytes[startIndex + 1].toInt() and 0xFF) / 255.0f
+                                val ymax = (rawLocationsBytes[startIndex + 2].toInt() and 0xFF) / 255.0f
+                                val xmax = (rawLocationsBytes[startIndex + 3].toInt() and 0xFF) / 255.0f
+                                Log.d("Detection", "Object $i: ymin:$ymin xmin:$xmin ymax:$ymax xmax:$xmax")
 
-                            val boxLeft = (xmin * scaleFactor * imageView.width)
-                            val boxTop = (ymin * scaleFactor * imageView.height)
-                            val boxRight = (xmax * scaleFactor * imageView.width)
-                            val boxBottom = (ymax * scaleFactor * imageView.height)
+                                val imageWidth = bitmap.width
+                                val imageHeight = bitmap.height
 
-                            Log.d("Bounding Coordinates (Original)", "xmin: $xmin, ymin: $ymin, xmax: $xmax, ymax: $ymax")
-                            Log.d("Bounding Coordinates", "boxLeft: $boxLeft")
-                            Log.d("Bounding Coordinates", "boxTop: $boxTop")
-                            Log.d("Bounding Coordinates", "boxRight: $boxRight")
-                            Log.d("Bounding Coordinates", "boxBottom: $boxBottom")
+                                // Calculate box dimensions based on normalized coordinates
+                                val boxLeft = xmin * imageWidth
+                                val boxTop = ymin * imageHeight
+                                val boxRight = xmax * imageWidth
+                                val boxBottom = ymax * imageHeight
 
-                            paint.color = colors[i % colors.size]
-                            paint.style = Paint.Style.STROKE
-                            canvas.drawRect(
-                                RectF(
-                                    boxLeft, boxTop,
-                                    boxRight, boxBottom
-                                ), paint
-                            )
-                            paint.style = Paint.Style.FILL
-                            canvas.drawText(
-                                "${labels[classes[i].toInt()]} %.2f%%".format(score * 100),
-                                boxLeft, boxTop + 10, paint // Adjust vertical position
-                            )
-                            paint.color = Color.RED
-                            paint.style = Paint.Style.FILL
-                            canvas.drawCircle(imageView.width / 2.0f, imageView.height / 2.0f, 10f, paint) // Center
-                            canvas.drawCircle(0f, 0f, 10f, paint) // Top-left corner
-
+                                paint.color = colors[i % colors.size]
+                                paint.style = Paint.Style.STROKE
+                                canvas.drawRect(
+                                    RectF(
+                                        boxLeft, boxTop,
+                                        boxRight, boxBottom
+                                    ), paint
+                                )
+                                paint.style = Paint.Style.FILL
+                                val classIndex = classes[i].toInt()
+                                val className = if (classIndex in labels.indices) labels[classIndex] else "Unknown"
+                                canvas.drawText("${className}  %.2f%%".format(score * 100), boxLeft, boxTop + 10, paint)
+                                Log.d("Detection", "Object $i: Class=$className, Score=$score")
+                            }
                         }
-
-                    }
-                    for (i in 0 until scores.size) {
-                        val score = scores[i]
-                        val classIndex = classes[i].toInt()
-                        val className = if (classIndex in labels.indices) labels[classIndex] else "Unknown"
-
-                        Log.d("Detection", "Object $i: Class=$className, Score=$score")
                     }
 
                     // Display annotated bitmap in the ImageView
@@ -213,13 +214,18 @@ class ScannerActivity : AppCompatActivity() {
                     }
                 }
             }
-
         }
 
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
     }
 
-    @SuppressLint("MissingPermission") //ALREADY HAS PERMISSION FROM MAIN ACTIVITY
+    private fun getTensorBufferUsingReflection(tensor: Tensor): ByteBuffer {
+        val bufferMethod = Tensor::class.java.getDeclaredMethod("buffer")
+        bufferMethod.isAccessible = true
+        return bufferMethod.invoke(tensor) as ByteBuffer
+    }
+
+    @SuppressLint("MissingPermission") // ALREADY HAS PERMISSION FROM MAIN ACTIVITY
     fun openCamera() {
         cameraManager.openCamera(cameraManager.cameraIdList[0], object : CameraDevice.StateCallback() {
             override fun onOpened(p0: CameraDevice) {
@@ -241,7 +247,6 @@ class ScannerActivity : AppCompatActivity() {
             }
 
             override fun onDisconnected(p0: CameraDevice) {}
-
             override fun onError(p0: CameraDevice, p1: Int) {}
         }, handler)
     }
