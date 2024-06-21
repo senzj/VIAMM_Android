@@ -5,6 +5,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
@@ -62,9 +65,35 @@ class EditRecordActivity : AppCompatActivity() {
         Log.d("EditRecordActivity", "Booking Status: $orderStatus")
         Log.d("EditRecordActivity", "Total Cost: $totalCost")
 
+
+
+        // Set booking status with specific color for "CANCELLED" and "COMPLETE"
+        val statusText = "Booking Status: $orderStatus"
+        val spannableString = SpannableString(statusText)
+
+        if (orderStatus?.equals("cancelled", ignoreCase = true) == true) {
+            val start = statusText.indexOf(orderStatus, ignoreCase = true)
+            val end = start + orderStatus.length
+            spannableString.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Cancelled)),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } else if (orderStatus?.equals("complete", ignoreCase = true) == true) {
+            val start = statusText.indexOf(orderStatus, ignoreCase = true)
+            val end = start + orderStatus.length
+            spannableString.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Complete)),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
         binding.tvRecordID.text = "Booking ID: $orderId"
-        binding.tvRecordStatus.text = "Booking Status: $orderStatus"
-        binding.tvTotalCost.text = "₱ $totalCost"
+        binding.tvRecordStatus.text = spannableString
+        binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
 
         services?.forEach { service ->
             val tableRow = TableRow(this)
@@ -88,7 +117,7 @@ class EditRecordActivity : AppCompatActivity() {
             // Add vertical line
             tableRow.addView(View(this).apply {
                 layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(Color.DKGRAY)
+                setBackgroundColor(Color.BLACK)
             })
 
             // Service Name
@@ -103,7 +132,7 @@ class EditRecordActivity : AppCompatActivity() {
             // Add vertical line
             tableRow.addView(View(this).apply {
                 layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(Color.DKGRAY)
+                setBackgroundColor(Color.BLACK)
             })
 
             // Service Price
@@ -118,15 +147,14 @@ class EditRecordActivity : AppCompatActivity() {
             // Add vertical line
             tableRow.addView(View(this).apply {
                 layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(Color.DKGRAY)
+                setBackgroundColor(Color.BLACK)
             })
-
             binding.tblRecord.addView(tableRow)
 
             // Add horizontal line after each row
             binding.tblRecord.addView(View(this).apply {
                 layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1.dpToPx())
-                setBackgroundColor(Color.DKGRAY)
+                setBackgroundColor(Color.BLACK)
             })
         }
 

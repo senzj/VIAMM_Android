@@ -39,7 +39,7 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
         val currentOrder = orderList[position]
         holder.binding.apply {
-            tvOrderId.text = "Order ID: ${currentOrder.orderId}"
+            tvOrderId.text = "Booking ID: ${currentOrder.orderId}"
             tvOrderStatus.text = "Status: ${currentOrder.orderStatus}"
             tvOrderTotal.text = "Amount: ${currentOrder.totalCost}"
         }

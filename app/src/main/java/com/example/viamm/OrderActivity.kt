@@ -34,7 +34,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
     private lateinit var loadingDialog: LoadingDialog
 
     // Fetching data from the API
-    // Fetching data from the API
     @OptIn(DelicateCoroutinesApi::class)
     private fun fetchData() {
         // Show loading dialog

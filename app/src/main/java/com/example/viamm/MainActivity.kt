@@ -99,25 +99,25 @@ class MainActivity : AppCompatActivity() {
 
 // Other Functions =================================================================================
 
-// Redirect to order activity
+    // Redirect to order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to records activity
+    // Redirect to records activity
     private fun redirectToRecord() {
         val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to statistics activity
+    // Redirect to statistics activity
     private fun redirectToStatistics() {
         val intent = Intent(applicationContext, StatisticsActivity::class.java)
         startActivity(intent)
     }
 
-// Function to handle logout
+    // Function to handle logout
     private fun logout() {
         SharedData.getInstance(this).isLoggedIn = false
 

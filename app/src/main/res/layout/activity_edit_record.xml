@@ -22,7 +22,7 @@
         android:id="@+id/tvRecordID"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="16dp"
         android:text="Booking Number:"
         android:textColor="@android:color/black"
@@ -35,7 +35,7 @@
         android:id="@+id/tvRecordStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="8dp"
         android:text="Booking Status:"
         android:textColor="@android:color/black"
@@ -53,20 +53,31 @@
 
         <ScrollView
             android:id="@+id/sv_tbl_rec"
-            android:layout_width="408dp"
-            android:layout_height="324dp"
+            android:layout_width="match_parent"
+            android:layout_height="237dp"
             android:layout_marginTop="16dp"
             app:layout_constraintBottom_toTopOf="@+id/textCost"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteX="16dp"
+            android:padding="5dp">
 
             <TableLayout
                 android:id="@+id/tblRecord"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="8dp">
+                android:gravity="center"
+                android:padding="5dp">
 
                 <!-- Header row -->
-                <TableRow android:background="@android:color/white">
+
+                <TableRow android:background="@android:color/black">
+
+                    <!--Vertical line-->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/black" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -76,12 +87,14 @@
                         android:padding="4dp"
                         android:text="Amount"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:background="@android:color/white"/>
 
+                    <!--Vertical line-->
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray" />
+                        android:background="@android:color/black" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -91,12 +104,14 @@
                         android:padding="4dp"
                         android:text="Service"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:background="@android:color/white"/>
 
+                    <!--Vertical line-->
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray" />
+                        android:background="@android:color/black" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -106,7 +121,14 @@
                         android:padding="4dp"
                         android:text="Price"
                         android:textColor="@android:color/black"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:background="@android:color/white"/>
+
+                    <!--Vertical line-->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/black" />
 
                 </TableRow>
 
@@ -116,39 +138,31 @@
         </ScrollView>
 
         <TextView
-            android:id="@+id/textCost"
+            android:id="@+id/tvTotalCost"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="5dp"
             android:text="Total Amount:"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
+            android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/sv_tbl_rec" />
 
-        <TextView
-            android:id="@+id/tvTotalCost"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textCost"
-            app:layout_constraintTop_toBottomOf="@id/sv_tbl_rec" />
 
         <Button
             android:id="@+id/btnRecordBack"
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@color/bluegreen"
+            android:backgroundTint="@color/APpColor"
             android:text="Back"
             android:textColor="@color/white"
-            app:layout_constraintTop_toBottomOf="@+id/textCost"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvTotalCost"
+            app:layout_constraintVertical_bias="0.406"
+            tools:layout_editor_absoluteX="0dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
