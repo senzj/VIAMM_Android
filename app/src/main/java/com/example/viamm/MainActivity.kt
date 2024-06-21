@@ -66,24 +66,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getPermission(){
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ){
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
-            getPermission()
-        }
-    }
-
 // Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
@@ -155,6 +137,25 @@ class MainActivity : AppCompatActivity() {
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
+    }
+
+    // setting permissions for the camera
+    private fun getPermission(){
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
+            getPermission()
+        }
     }
 
 //    End of MainActivity ==========================================================================
