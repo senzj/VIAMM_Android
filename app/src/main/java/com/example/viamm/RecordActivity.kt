@@ -169,8 +169,20 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
                 finish()
                 true
             }
+
+            R.id.btn_scanner -> {
+                redirectToScanner()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    //  Function to go Scanner Activity
+    private fun redirectToScanner() {
+        val intent = Intent(applicationContext, ScannerActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onResume() {

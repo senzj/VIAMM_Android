@@ -151,11 +151,11 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
     }
 
-//  Function to go Scanner Activity
+    //  Function to go Scanner Activity
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
-}
+    }
 
 //    End of MainActivity ==========================================================================
 
