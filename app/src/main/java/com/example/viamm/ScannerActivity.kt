@@ -100,84 +100,105 @@ class ScannerActivity : AppCompatActivity() {
 
             override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
 
-                bitmap = textureView.bitmap!!
+                // Log ImageView dimensions
+                Log.d("ImageView Dimensions", "Width: ${imageView.width}, Height: ${imageView.height}")
 
-                // Preprocess the bitmap
-                var image = TensorImage(DataType.FLOAT32)
-                image.load(bitmap)
+                // Calculate scaling factor based on smaller dimension
+                val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
 
-                // Normalize pixel values manually
-                val buffer = image.tensorBuffer.buffer
-                while (buffer.hasRemaining()) {
-                    buffer.putFloat(buffer.getFloat() / 255.0f)
-                }
+                // Calculate aspect ratio scaling factors
+                val currentBitmap = textureView.bitmap
+                if (currentBitmap != null) {
+                    bitmap = currentBitmap // Only assign if not null
 
-                image = imageProcessor.process(image)
+                    // Preprocess the bitmap
+                    var image = TensorImage(DataType.FLOAT32)
+                    image.load(bitmap)
 
-                // Prepare input tensor
-                val inputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 320, 320, 3), DataType.FLOAT32)
-                inputBuffer.loadBuffer(image.tensorBuffer.buffer)
-
-                // Correctly sized output buffers
-                val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // 10 detections, each with 4 coordinates
-                val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection classes
-                val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection scores
-                val outputDetections = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Number of detections
-
-                // Run inference
-                interpreter.run(inputBuffer.buffer, outputClasses.buffer)
-                interpreter.run(inputBuffer.buffer, outputLocations.buffer)
-                interpreter.run(inputBuffer.buffer, outputDetections.buffer)
-                interpreter.run(inputBuffer.buffer, outputScores.buffer)
-
-                val classes = outputClasses.floatArray
-                val locations = outputLocations.floatArray
-                val numberOfDetections = outputDetections.floatArray[0]
-                val scores = outputScores.floatArray
-
-                Log.d("TENSOR LOG", "Number of Detections: $numberOfDetections")
-
-                // Create a mutable bitmap for drawing
-                val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                val canvas = Canvas(mutable)
-
-                // Draw bounding boxes and labels
-                val h = mutable.height
-                val w = mutable.width
-                paint.textSize = h / 15f
-                paint.strokeWidth = h / 85f
-
-                var actualDetections = 0
-                for (i in 0 until scores.size) {
-                    val score = scores[i]
-
-                    if (score > 0.35) {
-                        val x = i * 4
-                        val ymin = locations[x]
-                        val xmin = locations[x + 1]
-                        val ymax= locations[x + 2]
-                        val xmax = locations[x + 3]
-
-                        paint.color = colors[i % colors.size]
-                        paint.style = Paint.Style.STROKE
-                        canvas.drawRect(
-                            RectF(
-                                xmin * w, ymin * h,
-                                xmax * w, ymax * h
-                            ), paint
-                        )
-                        paint.style = Paint.Style.FILL
-                        canvas.drawText(
-                            "${labels[classes[i].toInt()]} %.2f%%".format(score * 100),
-                            locations[x + 1] * w, locations[x] * h, paint
-                        )
-
-                        actualDetections++
-
+                    // Normalize pixel values manually
+                    val buffer = image.tensorBuffer.buffer
+                    while (buffer.hasRemaining()) {
+                        buffer.putFloat(buffer.getFloat() / 255.0f)
                     }
 
-                    Log.d("TENSOR LOG", "Actual Number of Detections: $actualDetections")
+                    image = imageProcessor.process(image)
 
+                    // Prepare input tensor
+                    val inputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 320, 320, 3), DataType.FLOAT32)
+                    inputBuffer.loadBuffer(image.tensorBuffer.buffer)
+
+                    // Correctly sized output buffers
+                    val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // 10 detections, each with 4 coordinates
+                    val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection classes
+                    val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection scores
+                    val outputDetections = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Number of detections
+
+                    // Run inference
+                    interpreter.run(inputBuffer.buffer, outputLocations.buffer)
+                    interpreter.run(inputBuffer.buffer, outputClasses.buffer)
+                    interpreter.run(inputBuffer.buffer, outputScores.buffer)
+                    interpreter.run(inputBuffer.buffer, outputDetections.buffer)
+
+                    val locations = outputLocations.floatArray
+                    val classes = outputClasses.floatArray
+                    val scores = outputScores.floatArray
+                    val numberOfDetections = outputDetections.floatArray[0] // Get number of detections as an integer
+
+                    Log.d("TENSOR LOG", "Number of Detections: $numberOfDetections")
+
+                    // Create a mutable bitmap for drawing
+                    val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                    val canvas = Canvas(mutable)
+
+                    // Draw bounding boxes and labels
+                    val h = mutable.height
+                    val w = mutable.width
+                    paint.textSize = h / 15f
+                    paint.strokeWidth = h / 150f
+
+                    for (i in 0 until scores.size) {
+
+                        val score = scores[i]
+
+                        if (score > 0.35 && i != 0) {
+                            val x = i * 4
+                            val ymin = locations[x]
+                            val xmin = locations[x + 1]
+                            val ymax= locations[x + 2]
+                            val xmax = locations[x + 3]
+
+                            val boxLeft = (xmin * scaleFactor * imageView.width)
+                            val boxTop = (ymin * scaleFactor * imageView.height)
+                            val boxRight = (xmax * scaleFactor * imageView.width)
+                            val boxBottom = (ymax * scaleFactor * imageView.height)
+
+                            Log.d("Bounding Coordinates (Original)", "xmin: $xmin, ymin: $ymin, xmax: $xmax, ymax: $ymax")
+                            Log.d("Bounding Coordinates", "boxLeft: $boxLeft")
+                            Log.d("Bounding Coordinates", "boxTop: $boxTop")
+                            Log.d("Bounding Coordinates", "boxRight: $boxRight")
+                            Log.d("Bounding Coordinates", "boxBottom: $boxBottom")
+
+                            paint.color = colors[i % colors.size]
+                            paint.style = Paint.Style.STROKE
+                            canvas.drawRect(
+                                RectF(
+                                    boxLeft, boxTop,
+                                    boxRight, boxBottom
+                                ), paint
+                            )
+                            paint.style = Paint.Style.FILL
+                            canvas.drawText(
+                                "${labels[classes[i].toInt()]} %.2f%%".format(score * 100),
+                                boxLeft, boxTop + 10, paint // Adjust vertical position
+                            )
+                            paint.color = Color.RED
+                            paint.style = Paint.Style.FILL
+                            canvas.drawCircle(imageView.width / 2.0f, imageView.height / 2.0f, 10f, paint) // Center
+                            canvas.drawCircle(0f, 0f, 10f, paint) // Top-left corner
+
+                        }
+
+                    }
                     for (i in 0 until scores.size) {
                         val score = scores[i]
                         val classIndex = classes[i].toInt()
@@ -186,11 +207,10 @@ class ScannerActivity : AppCompatActivity() {
                         Log.d("Detection", "Object $i: Class=$className, Score=$score")
                     }
 
-                }
-
-                // Display annotated bitmap in the ImageView
-                runOnUiThread {
-                    imageView.setImageBitmap(mutable)
+                    // Display annotated bitmap in the ImageView
+                    runOnUiThread {
+                        imageView.setImageBitmap(mutable)
+                    }
                 }
             }
 
