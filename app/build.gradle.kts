@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.tensorflow.lite.metadata)
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.media3.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,5 +98,9 @@ dependencies {
 
     //TFLite
     implementation("org.tensorflow:tensorflow-lite:2.4.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.2.0")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.2.0")
+    implementation ("org.tensorflow:tensorflow-lite-gpu:2.9.0")
+
 
 }
