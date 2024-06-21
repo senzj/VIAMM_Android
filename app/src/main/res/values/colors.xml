@@ -3,13 +3,18 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FF4B4B</color>
-    <color name="green">#FF00FF00</color>
+    <color name="green">#00DC00</color>
     <color name="bluegreen">#78F6F6</color>
     <color name="lavender">#8080DC</color>
 
-<!--    Toolbar colors-->
+<!--Toolbar colors-->
     <color name="toolbarColor">#7f421f</color>
     <color name="APpColor">#7f421f</color>
     <color name="StatusBarColor">#dccdb8</color>
+
+<!--Status Colors-->
+    <color name="Status_Cancelled">#F21F1F</color>
+    <color name="Status_Complete">#1EF01E</color>
+    <color name="Status_Ongoing">#FF8C00</color>
 
 </resources>

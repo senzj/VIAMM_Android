@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Initialize toolbar
-        val toolbar: Toolbar? = binding.toolbar
+        val toolbar: Toolbar = binding.toolbar
         setSupportActionBar(toolbar)
 
         // Initialize buttons
@@ -64,24 +64,6 @@ class MainActivity : AppCompatActivity() {
             redirectToStatistics()
         }
 
-    }
-
-    private fun getPermission(){
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ){
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
-            getPermission()
-        }
     }
 
 // Function lifecycle to check if user is logged in
@@ -121,25 +103,25 @@ class MainActivity : AppCompatActivity() {
 
 // Other Functions =================================================================================
 
-// Redirect to order activity
+    // Redirect to order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to records activity
+    // Redirect to records activity
     private fun redirectToRecord() {
         val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to statistics activity
+    // Redirect to statistics activity
     private fun redirectToStatistics() {
         val intent = Intent(applicationContext, StatisticsActivity::class.java)
         startActivity(intent)
     }
 
-// Function to handle logout
+    // Function to handle logout
     private fun logout() {
         SharedData.getInstance(this).isLoggedIn = false
 
@@ -155,6 +137,25 @@ class MainActivity : AppCompatActivity() {
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
+    }
+
+    // setting permissions for the camera
+    private fun getPermission(){
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
+            getPermission()
+        }
     }
 
 //    End of MainActivity ==========================================================================
