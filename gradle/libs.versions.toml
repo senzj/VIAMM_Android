@@ -15,6 +15,9 @@ lifecycleViewmodelKtx = "2.8.0"
 retrofit2 = "2.9.0"
 legacySupportV4 = "1.0.0"
 supportAnnotations = "28.0.0"
+tensorflowLiteSupport = "0.1.0"
+tensorflowLiteMetadata = "0.1.0"
+tensorflowLiteGpu = "2.3.0"
 
 [libraries]
 retrofit2 = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit2"}
@@ -31,6 +34,9 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
 support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
+tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
+tensorflow-lite-metadata = { group = "org.tensorflow", name = "tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadata" }
+tensorflow-lite-gpu = { group = "org.tensorflow", name = "tensorflow-lite-gpu", version.ref = "tensorflowLiteGpu" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
