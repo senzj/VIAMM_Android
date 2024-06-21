@@ -59,10 +59,17 @@ class StatisticsActivity : AppCompatActivity() {
                 true
             }
 
+            // back button on the action bar
             android.R.id.home -> {
                 finish()
                 true
             }
+
+            R.id.btn_scanner -> {
+                redirectToScanner()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -79,6 +86,12 @@ class StatisticsActivity : AppCompatActivity() {
         startActivity(intent)
         finish() // Finish the current activity
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
+    }
+
+    //  Function to go Scanner Activity
+    private fun redirectToScanner() {
+        val intent = Intent(applicationContext, ScannerActivity::class.java)
+        startActivity(intent)
     }
 
 //    End of Statistics Activity ===================================================================

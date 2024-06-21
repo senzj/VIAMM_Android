@@ -36,10 +36,10 @@
         app:layout_constraintVertical_bias="0.0">
 
         <TextView
-            android:id="@+id/textOrder"
+            android:id="@+id/tvOrderID"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="15dp"
             android:layout_marginTop="16dp"
             android:text="Booking Number:"
             android:textColor="@android:color/black"
@@ -49,39 +49,17 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvOrderID"
+            android:id="@+id/tvOrderStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textOrder"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/textStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="15dp"
             android:layout_marginTop="8dp"
-            android:text="Booking Status:"
+            android:text="Booking Status: "
             android:textColor="@android:color/black"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/textOrder" />
-
-        <TextView
-            android:id="@+id/tvOrderStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textStatus"
-            app:layout_constraintTop_toBottomOf="@id/textOrder" />
+            app:layout_constraintTop_toBottomOf="@id/tvOrderID" />
 
         <ScrollView
             android:id="@+id/sv_tbl"
@@ -91,16 +69,22 @@
             app:layout_constraintTop_toBottomOf="@id/tvOrderStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/textCost">
+            app:layout_constraintBottom_toTopOf="@id/tvTotalCost">
 
             <TableLayout
                 android:id="@+id/tblOrder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:padding="8dp">
 
                 <!-- Header row -->
                 <TableRow android:background="@android:color/white">
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/black"/>
 
                     <TextView
                         android:layout_width="0dp"
@@ -115,7 +99,7 @@
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                        android:background="@android:color/black"/>
 
                     <TextView
                         android:layout_width="0dp"
@@ -130,7 +114,7 @@
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                        android:background="@android:color/black"/>
 
                     <TextView
                         android:layout_width="0dp"
@@ -142,6 +126,11 @@
                         android:textStyle="bold"
                         android:gravity="center_horizontal"/>
 
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/black"/>
+
                 </TableRow>
 
                 <!-- Add more rows dynamically as needed -->
@@ -150,26 +139,16 @@
         </ScrollView>
 
         <TextView
-            android:id="@+id/textCost"
+            android:id="@+id/tvTotalCost"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="5dp"
             android:text="Total Amount:"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/sv_tbl" />
-
-        <TextView
-            android:id="@+id/tvTotalCost"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="156dp"
-            android:layout_marginTop="4dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/textCost"
+            android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/sv_tbl" />
 
         <Button
@@ -206,7 +185,7 @@
             android:layout_height="80dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            android:backgroundTint="@color/bluegreen"
+            android:backgroundTint="@color/APpColor"
             android:text="Back"
             android:textColor="@color/white"
             app:layout_constraintTop_toBottomOf="@id/btnCancelOrder"

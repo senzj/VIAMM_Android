@@ -1,6 +1,7 @@
 package com.example.viamm
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.databinding.ActivityMainBinding
@@ -26,6 +28,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        getPermission()
+
         // Initialize the binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -37,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Initialize toolbar
-        val toolbar: Toolbar? = binding.toolbar
+        val toolbar: Toolbar = binding.toolbar
         setSupportActionBar(toolbar)
 
         // Initialize buttons
@@ -99,25 +103,25 @@ class MainActivity : AppCompatActivity() {
 
 // Other Functions =================================================================================
 
-// Redirect to order activity
+    // Redirect to order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to records activity
+    // Redirect to records activity
     private fun redirectToRecord() {
         val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
     }
 
-// Redirect to statistics activity
+    // Redirect to statistics activity
     private fun redirectToStatistics() {
         val intent = Intent(applicationContext, StatisticsActivity::class.java)
         startActivity(intent)
     }
 
-// Function to handle logout
+    // Function to handle logout
     private fun logout() {
         SharedData.getInstance(this).isLoggedIn = false
 
@@ -129,11 +133,30 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
     }
 
-//  Function to go Scanner Activity
+    //  Function to go Scanner Activity
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
-}
+    }
+
+    // setting permissions for the camera
+    private fun getPermission(){
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
+            getPermission()
+        }
+    }
 
 //    End of MainActivity ==========================================================================
 

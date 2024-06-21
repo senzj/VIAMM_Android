@@ -16,6 +16,7 @@ import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityRecordBinding
 import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.Order.Orders
+import com.example.viamm.models.Order.ServiceRecord
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -33,6 +34,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
     private lateinit var loadingDialog: LoadingDialog
 
     // Fetching data from the API
+    @OptIn(DelicateCoroutinesApi::class)
     private fun fetchData() {
         // Show loading dialog
         loadingDialog.show()
@@ -86,7 +88,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
 
         orderAdapter = CompletedOrderAdapter(orderList, this)
 
-        binding.rvOrders?.apply {
+        binding.rvOrders.apply {
             adapter = orderAdapter
             layoutManager = LinearLayoutManager(this@RecordActivity)
         }
@@ -168,8 +170,20 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
                 finish()
                 true
             }
+
+            R.id.btn_scanner -> {
+                redirectToScanner()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    //  Function to go Scanner Activity
+    private fun redirectToScanner() {
+        val intent = Intent(applicationContext, ScannerActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onResume() {
@@ -177,6 +191,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
         fetchData()
     }
 
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDIT_ORDER_REQUEST_CODE && resultCode == RESULT_OK) {

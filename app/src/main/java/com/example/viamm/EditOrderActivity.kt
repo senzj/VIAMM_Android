@@ -6,6 +6,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
@@ -16,6 +19,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.Api
@@ -86,10 +90,26 @@ class EditOrderActivity : AppCompatActivity() {
         Log.d("EditOrderActivity", "Location Name: $locationName")
         Log.d("EditOrderActivity", "Location Availability: $locationAvailability")
 
+        // Set booking status with specific color for "ONGOING"
+        val statusText = "Booking Status: $orderStatus"
+        val spannableString = SpannableString(statusText)
+
+        if (orderStatus?.equals("on-going", ignoreCase = true) == true) {
+            val start = statusText.indexOf(orderStatus, ignoreCase = true)
+            val end = start + orderStatus.length
+            spannableString.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Ongoing)),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+
         // Update UI components
-        binding.tvOrderID.text = orderId
-        binding.tvOrderStatus.text = orderStatus
-        binding.tvTotalCost.text = "₱ $totalCost"
+        binding.tvOrderID.text = "Booking Number: $orderId"
+        binding.tvOrderStatus.text = spannableString
+        binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
 
         // Populate the table with services dynamically
         services?.forEach { service ->
