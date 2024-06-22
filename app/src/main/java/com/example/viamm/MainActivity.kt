@@ -21,9 +21,7 @@ class MainActivity : AppCompatActivity() {
     // Initializing variables
     private lateinit var binding: ActivityMainBinding
 
-//    Activity lifecycles ==========================================================================
-
-//    OnCreate function of MainActivity
+    // OnCreate function of MainActivity
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -63,10 +61,9 @@ class MainActivity : AppCompatActivity() {
         btn_statistics.setOnClickListener {
             redirectToStatistics()
         }
-
     }
 
-// Function lifecycle to check if user is logged in
+    // Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
 
@@ -101,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-// Other Functions =================================================================================
+    // Other Functions =================================================================================
 
     // Redirect to order activity
     private fun redirectToOrder() {
@@ -133,13 +130,13 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out Successfully!", Toast.LENGTH_SHORT).show()
     }
 
-    //  Function to go Scanner Activity
+    // Function to go Scanner Activity
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
     }
 
-    // setting permissions for the camera
+    // Setting permissions for the camera
     private fun getPermission(){
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
@@ -158,6 +155,5 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    End of MainActivity ==========================================================================
-
+    // End of MainActivity ==========================================================================
 }

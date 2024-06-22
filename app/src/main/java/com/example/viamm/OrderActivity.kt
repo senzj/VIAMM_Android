@@ -71,7 +71,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         }
     }
 
-
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,9 +139,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         }
         startActivity(intent)
     }
-
-
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
