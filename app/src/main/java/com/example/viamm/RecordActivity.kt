@@ -136,8 +136,8 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
             }
         }
         // Logging Data passed
-        Log.d("RecordActivity", "Selected Order ID: ${selectedOrder.orderId}")
-        Log.d("RecordActivity", "Selected Order Status: ${selectedOrder.orderStatus}")
+        Log.d("RecordActivity", "Selected Booking ID: ${selectedOrder.orderId}")
+        Log.d("RecordActivity", "Selected Booking Status: ${selectedOrder.orderStatus}")
         Log.d("RecordActivity", "Selected Total Cost: ${selectedOrder.totalCost}")
         Log.d("RecordActivity", "Selected Services: $servicesList")
 

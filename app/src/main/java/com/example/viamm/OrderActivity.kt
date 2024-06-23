@@ -106,7 +106,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
 
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
-        Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Selected Booking ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
 
         // Prepare services list
         val servicesList = ArrayList<ServiceOrder>()
