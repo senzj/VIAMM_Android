@@ -66,40 +66,49 @@ class ScannerActivity : AppCompatActivity() {
         val modelFile = FileUtil.loadMappedFile(this, "detect.tflite")
         interpreter = Interpreter(modelFile)
 
-        // GPU delegation for performance
+//        // GPU delegation for performance
+//        try {
+//            val compatList = CompatibilityList()
+//            Log.d("GPU Delegate", "Compatibility List: $compatList")
+//
+//            val options = if (compatList.isDelegateSupportedOnThisDevice) {
+//                Log.d("GPU Delegate", "Using GPU delegate")
+//
+//                val delegateOptions = compatList.bestOptionsForThisDevice
+//                Log.d("GPU Delegate", "Delegate options:\n$delegateOptions")
+//
+//                val gpuDelegate = GpuDelegate(delegateOptions)
+//                Log.d("GPU Delegate", "GPU delegate created\n$gpuDelegate")
+//
+//                Interpreter.Options().addDelegate(gpuDelegate)
+//            } else {
+//                Log.d("GPU Delegate", "GPU delegate not supported or suitable. Using CPU.")
+//                Interpreter.Options() // No GPU delegate
+//            }
+//            Log.d("GPU Delegate", "Interpreter options: \n$options")
+//
+//            interpreter = Interpreter(modelFile, options)
+//            Log.d("GPU Delegate", "Interpreter created")
+//
+//        } catch (e: Exception) {
+//            Log.e("GPU Delegate", "Error creating interpreter: ${e.message}")
+//            // Handle error, fallback to CPU inference
+//            try {
+//                interpreter = Interpreter(modelFile) // Fallback to CPU by default
+//                Log.d("GPU Delegate", "Interpreter created with CPU fallback")
+//            } catch (e: Exception) {
+//                Log.e("GPU Delegate", "Error creating interpreter with CPU fallback: ${e.message}")
+//                // Handle further errors or notify the user
+//            }
+//        }
+
+        // CPU inference
         try {
-            val compatList = CompatibilityList()
-            Log.d("GPU Delegate", "Compatibility List: $compatList")
-
-            val options = if (compatList.isDelegateSupportedOnThisDevice) {
-                Log.d("GPU Delegate", "Using GPU delegate")
-
-                val delegateOptions = compatList.bestOptionsForThisDevice
-                Log.d("GPU Delegate", "Delegate options:\n$delegateOptions")
-
-                val gpuDelegate = GpuDelegate(delegateOptions)
-                Log.d("GPU Delegate", "GPU delegate created\n$gpuDelegate")
-
-                Interpreter.Options().addDelegate(gpuDelegate)
-            } else {
-                Log.d("GPU Delegate", "GPU delegate not supported or suitable. Using CPU.")
-                Interpreter.Options() // No GPU delegate
-            }
-            Log.d("GPU Delegate", "Interpreter options: \n$options")
-
-            interpreter = Interpreter(modelFile, options)
-            Log.d("GPU Delegate", "Interpreter created")
-
+            interpreter = Interpreter(modelFile) // Use CPU by default
+            Log.d("Interpreter", "Interpreter created (CPU)")
         } catch (e: Exception) {
-            Log.e("GPU Delegate", "Error creating interpreter: ${e.message}")
-            // Handle error, fallback to CPU inference
-            try {
-                interpreter = Interpreter(modelFile) // Fallback to CPU by default
-                Log.d("GPU Delegate", "Interpreter created with CPU fallback")
-            } catch (e: Exception) {
-                Log.e("GPU Delegate", "Error creating interpreter with CPU fallback: ${e.message}")
-                // Handle further errors or notify the user
-            }
+            Log.e("Interpreter", "Error creatinginterpreter: ${e.message}")
+            // Handle errors or notify the user
         }
 
         // Image processor
