@@ -14,4 +14,11 @@
 
     <style name="Theme.VIAMM" parent="Base.Theme.VIAMM" />
     <style name="Theme.VIAMM.NoAB" parent="Base.Theme.VIAMM.NoActionBar" />
+
+    <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColor">@color/AlertDialogText</item>
+        <item name="android:background">@color/AlertDialogBG</item>
+    </style>
+
 </resources>

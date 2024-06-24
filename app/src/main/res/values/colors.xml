@@ -17,4 +17,8 @@
     <color name="Status_Complete">#1EF01E</color>
     <color name="Status_Ongoing">#FF8C00</color>
 
+<!--Custom Alert Dialong Colors-->
+    <color name="AlertDialogBG">#D2B48C</color>
+    <color name="AlertDialogText">#FFFFFFFF</color>
+
 </resources>
