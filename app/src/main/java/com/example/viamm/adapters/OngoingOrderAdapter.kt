@@ -34,7 +34,7 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
                                     listener.onTTSRequested("Booking ID: ${order.orderId}, Booking Status: ${order.orderStatus}, Total Amount: ${order.totalCost}")
                                     Log.d("OrderAdapter", "Touch detected for Booking ID: ${order.orderId}")
                                 }
-                            }, 500) // 500ms delay
+                            }, 70) // 500ms delay
                         }
                         MotionEvent.ACTION_UP -> {
                             isTouched = false
