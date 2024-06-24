@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.viamm.loadings.MainLoading
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.Tensor
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
@@ -28,9 +29,9 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.nio.ByteBuffer
 
 class ScannerActivity : AppCompatActivity() {
-
     lateinit var imageProcessor: ImageProcessor
     lateinit var bitmap: Bitmap
     lateinit var imageView: ImageView
@@ -41,9 +42,8 @@ class ScannerActivity : AppCompatActivity() {
     lateinit var handlerThread: HandlerThread
     lateinit var interpreter: Interpreter
     lateinit var labels: List<String>
-
     private lateinit var loadingDialog: MainLoading
-
+  
     var colors = listOf(
         Color.BLUE, Color.GREEN, Color.RED, Color.CYAN, Color.GRAY, Color.BLACK,
         Color.DKGRAY, Color.MAGENTA, Color.YELLOW, Color.RED
@@ -66,49 +66,41 @@ class ScannerActivity : AppCompatActivity() {
         val modelFile = FileUtil.loadMappedFile(this, "detect.tflite")
         interpreter = Interpreter(modelFile)
 
-//        // GPU delegation for performance
-//        try {
-//            val compatList = CompatibilityList()
-//            Log.d("GPU Delegate", "Compatibility List: $compatList")
-//
-//            val options = if (compatList.isDelegateSupportedOnThisDevice) {
-//                Log.d("GPU Delegate", "Using GPU delegate")
-//
-//                val delegateOptions = compatList.bestOptionsForThisDevice
-//                Log.d("GPU Delegate", "Delegate options:\n$delegateOptions")
-//
-//                val gpuDelegate = GpuDelegate(delegateOptions)
-//                Log.d("GPU Delegate", "GPU delegate created\n$gpuDelegate")
-//
-//                Interpreter.Options().addDelegate(gpuDelegate)
-//            } else {
-//                Log.d("GPU Delegate", "GPU delegate not supported or suitable. Using CPU.")
-//                Interpreter.Options() // No GPU delegate
-//            }
-//            Log.d("GPU Delegate", "Interpreter options: \n$options")
-//
-//            interpreter = Interpreter(modelFile, options)
-//            Log.d("GPU Delegate", "Interpreter created")
-//
-//        } catch (e: Exception) {
-//            Log.e("GPU Delegate", "Error creating interpreter: ${e.message}")
-//            // Handle error, fallback to CPU inference
-//            try {
-//                interpreter = Interpreter(modelFile) // Fallback to CPU by default
-//                Log.d("GPU Delegate", "Interpreter created with CPU fallback")
-//            } catch (e: Exception) {
-//                Log.e("GPU Delegate", "Error creating interpreter with CPU fallback: ${e.message}")
-//                // Handle further errors or notify the user
-//            }
-//        }
 
-        // CPU inference
+        // GPU delegation for performance
         try {
-            interpreter = Interpreter(modelFile) // Use CPU by default
-            Log.d("Interpreter", "Interpreter created (CPU)")
+            val compatList = CompatibilityList()
+            Log.d("GPU Delegate", "Compatibility List: $compatList")
+
+            val options = if (compatList.isDelegateSupportedOnThisDevice) {
+                Log.d("GPU Delegate", "Using GPU delegate")
+
+                val delegateOptions = compatList.bestOptionsForThisDevice
+                Log.d("GPU Delegate", "Delegate options:\n$delegateOptions")
+
+                val gpuDelegate = GpuDelegate(delegateOptions)
+                Log.d("GPU Delegate", "GPU delegate created\n$gpuDelegate")
+
+                Interpreter.Options().addDelegate(gpuDelegate)
+            } else {
+                Log.d("GPU Delegate", "GPU delegate not supported or suitable. Using CPU.")
+                Interpreter.Options() // No GPU delegate
+            }
+            Log.d("GPU Delegate", "Interpreter options: \n$options")
+
+            interpreter = Interpreter(modelFile, options)
+            Log.d("GPU Delegate", "Interpreter created")
+
         } catch (e: Exception) {
-            Log.e("Interpreter", "Error creatinginterpreter: ${e.message}")
-            // Handle errors or notify the user
+            Log.e("GPU Delegate", "Error creating interpreter: ${e.message}")
+            // Handle error, fallback to CPU inference
+            try {
+                interpreter = Interpreter(modelFile) // Fallback to CPU by default
+                Log.d("GPU Delegate", "Interpreter created with CPU fallback")
+            } catch (e: Exception) {
+                Log.e("GPU Delegate", "Error creating interpreter with CPU fallback: ${e.message}")
+                // Handle further errors or notify the user
+            }
         }
 
         // Image processor
@@ -128,7 +120,6 @@ class ScannerActivity : AppCompatActivity() {
             }
 
             override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {}
-
             override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                 return false
             }
@@ -136,104 +127,134 @@ class ScannerActivity : AppCompatActivity() {
             override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
                 bitmap = textureView.bitmap!!
 
-                // Preprocess the bitmap
-                var image = TensorImage(DataType.FLOAT32)
-                image.load(bitmap)
+                // Calculate scaling factor based on smaller dimension
+                val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
 
-                // Normalize pixel values manually
-                val buffer = image.tensorBuffer.buffer
-                while (buffer.hasRemaining()) {
-                    buffer.putFloat(buffer.getFloat() / 255.0f)
-                }
+                val currentBitmap = textureView.bitmap
+                if (currentBitmap != null) {
+                    bitmap = currentBitmap // Only assign if not null
 
-                image = imageProcessor.process(image)
+                    // Preprocess the bitmap
+                    var image = TensorImage(DataType.FLOAT32)
+                    image.load(bitmap)
 
-                // Prepare input tensor
-                val inputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 320, 320, 3), DataType.FLOAT32)
-                inputBuffer.loadBuffer(image.tensorBuffer.buffer)
-
-                // Correctly sized output buffers
-                val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // 10 detections, each with 4 coordinates
-                val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection classes
-                val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // 10 detection scores
-                val outputDetections = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Number of detections
-
-                // Run inference
-                interpreter.run(inputBuffer.buffer, outputClasses.buffer)
-                interpreter.run(inputBuffer.buffer, outputLocations.buffer)
-                interpreter.run(inputBuffer.buffer, outputDetections.buffer)
-                interpreter.run(inputBuffer.buffer, outputScores.buffer)
-
-                val classes = outputClasses.floatArray
-                val locations = outputLocations.floatArray
-                val numberOfDetections = outputDetections.floatArray[0]
-                val scores = outputScores.floatArray
-
-                Log.d("TENSOR LOG", "Number of Detections: $numberOfDetections")
-
-                // Create a mutable bitmap for drawing
-                val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                val canvas = Canvas(mutable)
-
-                // Draw bounding boxes and labels
-                val h = mutable.height
-                val w = mutable.width
-                paint.textSize = h / 15f
-                paint.strokeWidth = h / 85f
-
-                var actualDetections = 0
-                for (i in 0 until scores.size) {
-                    val score = scores[i]
-
-                    if (score > 0.35) {
-                        val x = i * 4
-                        val ymin = locations[x]
-                        val xmin = locations[x + 1]
-                        val ymax= locations[x + 2]
-                        val xmax = locations[x + 3]
-
-                        paint.color = colors[i % colors.size]
-                        paint.style = Paint.Style.STROKE
-                        canvas.drawRect(
-                            RectF(
-                                xmin * w, ymin * h,
-                                xmax * w, ymax * h
-                            ), paint
-                        )
-                        paint.style = Paint.Style.FILL
-                        canvas.drawText(
-                            "${labels[classes[i].toInt()]} %.2f%%".format(score * 100),
-                            locations[x + 1] * w, locations[x] * h, paint
-                        )
-
-                        actualDetections++
-
+                    // Normalize pixel values manually
+                    val buffer = image.tensorBuffer.buffer
+                    while (buffer.hasRemaining()) {
+                        buffer.putFloat(buffer.getFloat() / 255.0f)
                     }
 
-                    Log.d("TENSOR LOG", "Actual Number of Detections: $actualDetections")
+                    image = imageProcessor.process(image)
 
-                    for (i in 0 until scores.size) {
+                    // Prepare input tensor
+                    val inputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 320, 320, 3), DataType.FLOAT32)
+                    inputBuffer.loadBuffer(image.tensorBuffer.buffer)
+
+                    // Allocate output buffers with appropriate sizes
+                    val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Bounding box locations
+                    val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Detection classes
+                    val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Detection scores
+                    val outputDetections = TensorBuffer.createFixedSize(intArrayOf(10), DataType.FLOAT32) // Number of detections
+
+                    Log.d("TENSOR LOG", "Locations: ${outputLocations.buffer}")
+
+                    // Prepare a map for the output buffers
+                    val outputMap = mapOf(
+                        0 to outputScores.buffer, // Detection scores (identifier 339)
+                        1 to outputClasses.buffer, // Detection classes (identifier 338)
+                        2 to outputLocations.buffer, // Detection boxes (identifier 337)
+                        3 to outputDetections.buffer // Number of detections (identifier 340)
+                    )
+
+                    // Run inference
+                    interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer.buffer), outputMap)
+
+                    val detectionBoxesTensor = interpreter.getOutputTensor(1)
+                    val rawLocationsBuffer = getTensorBufferUsingReflection(detectionBoxesTensor) // Pass the Tensor object
+                    val rawLocationsBytes = ByteArray(rawLocationsBuffer.remaining())
+                    rawLocationsBuffer.get(rawLocationsBytes)
+
+                    // Extract output data
+                    val numDetections = outputDetections.floatArray[0].toInt()
+                    val coordinatesPerDetection = 4
+                    val scores = outputScores.floatArray
+                    val classes = outputClasses.floatArray
+
+                    Log.d("Raw Bytes", "Raw location byte (Before Norm): ${rawLocationsBytes.contentToString()}")
+
+                    Log.d("TENSOR LOG", "Number of Detections: $numDetections")
+                    for (i in 0 until interpreter.outputTensorCount) {
+                        val tensor = interpreter.getOutputTensor(i)
+                        Log.d("TENSOR LOG", "Output Tensor $i Shape: ${tensor.shape().joinToString(", ")}")
+                    }
+
+                    // Create a mutable bitmap for drawing
+                    val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                    val canvas = Canvas(mutable)
+
+                    // Draw bounding boxes and labels
+                    val h = mutable.height
+                    val w = mutable.width
+                    paint.textSize = h / 15f
+                    paint.strokeWidth = h / 150f
+
+                    for (i in 0 until numDetections) {
                         val score = scores[i]
-                        val classIndex = classes[i].toInt()
-                        val className = if (classIndex in labels.indices) labels[classIndex] else "Unknown"
 
-                        Log.d("Detection", "Object $i: Class=$className, Score=$score")
+                        if (score > 0.35) {
+                            val startIndex = i * coordinatesPerDetection
+                            // Check if enough coordinates are available
+                            if (startIndex + 3 < rawLocationsBytes.size) {
+                                val ymin = (rawLocationsBytes[startIndex].toInt() and 0xFF) / 255.0f
+                                val xmin = (rawLocationsBytes[startIndex + 1].toInt() and 0xFF) / 255.0f
+                                val ymax = (rawLocationsBytes[startIndex + 2].toInt() and 0xFF) / 255.0f
+                                val xmax = (rawLocationsBytes[startIndex + 3].toInt() and 0xFF) / 255.0f
+                                Log.d("Detection", "Object $i: ymin:$ymin xmin:$xmin ymax:$ymax xmax:$xmax")
+
+                                val imageWidth = bitmap.width
+                                val imageHeight = bitmap.height
+
+                                // Calculate box dimensions based on normalized coordinates
+                                val boxLeft = xmin * imageWidth
+                                val boxTop = ymin * imageHeight
+                                val boxRight = xmax * imageWidth
+                                val boxBottom = ymax * imageHeight
+
+                                paint.color = colors[i % colors.size]
+                                paint.style = Paint.Style.STROKE
+                                canvas.drawRect(
+                                    RectF(
+                                        boxLeft, boxTop,
+                                        boxRight, boxBottom
+                                    ), paint
+                                )
+                                paint.style = Paint.Style.FILL
+                                val classIndex = classes[i].toInt()
+                                val className = if (classIndex in labels.indices) labels[classIndex] else "Unknown"
+                                canvas.drawText("${className}  %.2f%%".format(score * 100), boxLeft, boxTop + 10, paint)
+                                Log.d("Detection", "Object $i: Class=$className, Score=$score")
+                            }
+                        }
                     }
 
-                }
-
-                // Display annotated bitmap in the ImageView
-                runOnUiThread {
-                    imageView.setImageBitmap(mutable)
+                    // Display annotated bitmap in the ImageView
+                    runOnUiThread {
+                        imageView.setImageBitmap(mutable)
+                    }
                 }
             }
-
         }
 
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
     }
 
-    @SuppressLint("MissingPermission") //ALREADY HAS PERMISSION FROM MAIN ACTIVITY
+    private fun getTensorBufferUsingReflection(tensor: Tensor): ByteBuffer {
+        val bufferMethod = Tensor::class.java.getDeclaredMethod("buffer")
+        bufferMethod.isAccessible = true
+        return bufferMethod.invoke(tensor) as ByteBuffer
+    }
+
+    @SuppressLint("MissingPermission") // ALREADY HAS PERMISSION FROM MAIN ACTIVITY
     fun openCamera() {
         cameraManager.openCamera(cameraManager.cameraIdList[0], object : CameraDevice.StateCallback() {
             override fun onOpened(p0: CameraDevice) {
@@ -264,6 +285,7 @@ class ScannerActivity : AppCompatActivity() {
             override fun onError(p0: CameraDevice, p1: Int) {
                 cameraDevice.close()
             }
+            
         }, handler)
     }
 
