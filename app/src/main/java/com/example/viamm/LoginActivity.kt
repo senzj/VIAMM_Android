@@ -1,7 +1,10 @@
 package com.example.viamm
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -20,13 +23,18 @@ import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Locale
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var loginBtn: Button
     private lateinit var CompName: TextInputEditText
     private lateinit var CompPass: TextInputEditText
     private lateinit var loadingDialog: LoginLoading
+
+    private lateinit var textToSpeech: TextToSpeech
+    private var isClicked = false
+    private var isSpeaking = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +56,14 @@ class LoginActivity : AppCompatActivity() {
         setupFocusChangeListener(CompName)
         setupFocusChangeListener(CompPass)
 
+        // Initialize TextToSpeech
+        textToSpeech = TextToSpeech(this, this)
+
+        setHoverListener(loginBtn,"Login")
+
         loginBtn.setOnClickListener {
+            textToSpeech("Logging in")
+
             val username = CompName.text.toString().trim()
             val password = CompPass.text.toString().trim()
 
@@ -167,4 +182,59 @@ class LoginActivity : AppCompatActivity() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
+
+    // Hold or Hover Listener event
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setHoverListener(button: Button, text: String) {
+        button.setOnTouchListener { _, event ->
+            when (event.action) {
+
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    // check if the button is clicked and speaking
+                    if (!isClicked || !isSpeaking){
+                        isSpeaking = true
+                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        textToSpeech(text)
+                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    textToSpeech.stop()
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+
+                }
+
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                }
+            }
+            false // return false to let other touch events like click still work
+        }
+    }
+
+    // Text to Speech function
+    private fun textToSpeech(text: String) {
+        if (!textToSpeech.isSpeaking) {
+            textToSpeech.stop()
+        }
+        Handler().postDelayed({
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+    }
+
+    // Initialize TextToSpeech
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }

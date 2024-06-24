@@ -3,8 +3,10 @@ package com.example.viamm
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
 import android.os.Parcel
 import android.os.Parcelable
+import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -12,7 +14,9 @@ import android.util.Log
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
@@ -24,11 +28,16 @@ import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditRecordBinding
 import com.example.viamm.models.Order.ServiceRecord
 import retrofit2.Response
+import java.util.Locale
 
-class EditRecordActivity : AppCompatActivity() {
+class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityEditRecordBinding
     private lateinit var api: Api
+
+    private lateinit var textToSpeech: TextToSpeech
+    private var isClicked = false
+    private var isSpeaking = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,10 +51,11 @@ class EditRecordActivity : AppCompatActivity() {
         window.statusBarColor = ContextCompat.getColor(this, R.color.StatusBarColor)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
-        }
+        //toolbar back button
+//        supportActionBar?.apply {
+//            setDisplayHomeAsUpEnabled(true)
+//            setDisplayShowHomeEnabled(true)
+//        }
 
         api = RetrofitClient.instance
 
@@ -64,8 +74,6 @@ class EditRecordActivity : AppCompatActivity() {
         Log.d("EditRecordActivity", "Booking ID: $orderId")
         Log.d("EditRecordActivity", "Booking Status: $orderStatus")
         Log.d("EditRecordActivity", "Total Cost: $totalCost")
-
-
 
         // Set booking status with specific color for "CANCELLED" and "COMPLETE"
         val statusText = "Booking Status: $orderStatus"
@@ -94,6 +102,9 @@ class EditRecordActivity : AppCompatActivity() {
         binding.tvRecordID.text = "Booking ID: $orderId"
         binding.tvRecordStatus.text = spannableString
         binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
+
+        // Initialize TextToSpeech
+        textToSpeech = TextToSpeech(this, this)
 
         services?.forEach { service ->
             val tableRow = TableRow(this)
@@ -157,10 +168,15 @@ class EditRecordActivity : AppCompatActivity() {
                 setBackgroundColor(Color.BLACK)
             })
         }
+        // Set hover listener for back button
+        setHoverListener(binding.btnRecordBack, "Back to Records")
 
         binding.btnRecordBack.setOnClickListener {
+            textToSpeech("Back Button Pressed")
             finish()
         }
+
+
     }
 
     // Extension function to convert dp to pixels
@@ -189,11 +205,67 @@ class EditRecordActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
+            //toolbar back button function
+//            android.R.id.home -> {
+//                finish()
+//                true
+//            }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    //text to speech functions
+    // Initialize TextToSpeech
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Text to Speech function
+    private fun textToSpeech(text: String) {
+        if (!textToSpeech.isSpeaking) {
+            textToSpeech.stop()
+        }
+        Handler().postDelayed({
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+    }
+
+    // Hold or Hover Listener event for text to speech
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setHoverListener(button: Button, text: String) {
+        button.setOnTouchListener { _, event ->
+            when (event.action) {
+
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    // check if the button is clicked and speaking
+                    if (!isClicked || !isSpeaking){
+                        isSpeaking = true
+                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        textToSpeech(text)
+                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    textToSpeech.stop()
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+
+                }
+
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                }
+            }
+            false // return false to let other touch events like click still work
         }
     }
 }
