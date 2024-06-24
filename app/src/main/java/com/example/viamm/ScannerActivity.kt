@@ -18,6 +18,7 @@ import android.view.TextureView
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.example.viamm.loadings.MainLoading
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.Tensor
@@ -38,8 +39,11 @@ class ScannerActivity : AppCompatActivity() {
     lateinit var cameraManager: CameraManager
     lateinit var cameraDevice: CameraDevice
     lateinit var handler: Handler
+    lateinit var handlerThread: HandlerThread
     lateinit var interpreter: Interpreter
     lateinit var labels: List<String>
+    private lateinit var loadingDialog: MainLoading
+  
     var colors = listOf(
         Color.BLUE, Color.GREEN, Color.RED, Color.CYAN, Color.GRAY, Color.BLACK,
         Color.DKGRAY, Color.MAGENTA, Color.YELLOW, Color.RED
@@ -51,6 +55,10 @@ class ScannerActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_scanner)
 
+        // Initialize loading dialog
+        loadingDialog = MainLoading(this)
+        loadingDialog.show()
+
         // Load labels
         labels = FileUtil.loadLabels(this, "labelmap.txt")
 
@@ -58,22 +66,41 @@ class ScannerActivity : AppCompatActivity() {
         val modelFile = FileUtil.loadMappedFile(this, "detect.tflite")
         interpreter = Interpreter(modelFile)
 
+
         // GPU delegation for performance
         try {
             val compatList = CompatibilityList()
+            Log.d("GPU Delegate", "Compatibility List: $compatList")
+
             val options = if (compatList.isDelegateSupportedOnThisDevice) {
                 Log.d("GPU Delegate", "Using GPU delegate")
+
                 val delegateOptions = compatList.bestOptionsForThisDevice
+                Log.d("GPU Delegate", "Delegate options:\n$delegateOptions")
+
                 val gpuDelegate = GpuDelegate(delegateOptions)
+                Log.d("GPU Delegate", "GPU delegate created\n$gpuDelegate")
+
                 Interpreter.Options().addDelegate(gpuDelegate)
             } else {
-                Log.d("GPU Delegate", "GPU delegate not supported. Using CPU.")
-                Interpreter.Options()
+                Log.d("GPU Delegate", "GPU delegate not supported or suitable. Using CPU.")
+                Interpreter.Options() // No GPU delegate
             }
+            Log.d("GPU Delegate", "Interpreter options: \n$options")
+
             interpreter = Interpreter(modelFile, options)
+            Log.d("GPU Delegate", "Interpreter created")
+
         } catch (e: Exception) {
             Log.e("GPU Delegate", "Error creating interpreter: ${e.message}")
-            // Handle error, e.g., fallback to CPU inference
+            // Handle error, fallback to CPU inference
+            try {
+                interpreter = Interpreter(modelFile) // Fallback to CPU by default
+                Log.d("GPU Delegate", "Interpreter created with CPU fallback")
+            } catch (e: Exception) {
+                Log.e("GPU Delegate", "Error creating interpreter with CPU fallback: ${e.message}")
+                // Handle further errors or notify the user
+            }
         }
 
         // Image processor
@@ -81,7 +108,7 @@ class ScannerActivity : AppCompatActivity() {
             .add(ResizeOp(320, 320, ResizeOp.ResizeMethod.BILINEAR))
             .build()
 
-        val handlerThread = HandlerThread("videoThread")
+        handlerThread = HandlerThread("videoThread")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
 
@@ -98,6 +125,8 @@ class ScannerActivity : AppCompatActivity() {
             }
 
             override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
+                bitmap = textureView.bitmap!!
+
                 // Calculate scaling factor based on smaller dimension
                 val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
 
@@ -244,10 +273,80 @@ class ScannerActivity : AppCompatActivity() {
 
                     override fun onConfigureFailed(p0: CameraCaptureSession) {}
                 }, handler)
+
+                // Dismiss the loading dialog
+                loadingDialog.dismiss()
             }
 
-            override fun onDisconnected(p0: CameraDevice) {}
-            override fun onError(p0: CameraDevice, p1: Int) {}
+            override fun onDisconnected(p0: CameraDevice) {
+                cameraDevice.close()
+            }
+
+            override fun onError(p0: CameraDevice, p1: Int) {
+                cameraDevice.close()
+            }
+            
         }, handler)
     }
+
+    // Pauses the scanner activity, such as close app or switch tabs
+    override fun onPause() {
+        super.onPause()
+        closeCamera()
+        Log.d("ScannerActivity", "Scanner Activity Paused")
+    }
+
+    // Stops the scanner activity, such as close app or switch tabs
+    override fun onStop() {
+        super.onStop()
+        closeCamera()
+        Log.d("ScannerActivity", "Scanner Activity Stopped")
+    }
+
+    // Resumes the scanner activity
+    override fun onResume() {
+        super.onResume()
+        if (textureView.isAvailable) {
+            openCamera()
+        } else {
+            textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+
+                override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
+                    openCamera()
+                    Log.d("ScannerActivity", "Scanner Camera Opened")
+                }
+
+                override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
+
+                }
+
+                override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
+                    return false
+                }
+
+                override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
+
+                }
+
+            }
+        }
+        Log.d("ScannerActivity", "Scanner Activity Resumed")
+    }
+
+    // Closes the opened scanner activity
+    override fun onDestroy() {
+        super.onDestroy()
+        handlerThread.quitSafely()
+        interpreter.close()
+        Log.d("ScannerActivity", "Scanner Activity Destroyed")
+    }
+
+    // Closes the camera if not used
+    private fun closeCamera() {
+        if (::cameraDevice.isInitialized) {
+            cameraDevice.close()
+            Log.d("ScannerActivity_Camera", "Camera Closed")
+        }
+    }
+
 }

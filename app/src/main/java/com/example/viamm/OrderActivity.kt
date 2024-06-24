@@ -1,10 +1,15 @@
 package com.example.viamm
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -24,14 +29,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.Locale
 
-class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
+class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityOrderBinding
     private lateinit var ongoingOrderAdapter: OngoingOrderAdapter
     private var orderList: List<OngoingOrder> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
+
+    private lateinit var textToSpeech: TextToSpeech
+    private var isClicked = false
+    private var isSpeaking = false
 
     // Fetching data from the API
     @OptIn(DelicateCoroutinesApi::class)
@@ -71,7 +81,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         }
     }
 
-
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,16 +93,25 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         loadingDialog = LoadingDialog(this)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
-        }
+        ////toolbar back button
+//        supportActionBar?.apply {
+//            setDisplayHomeAsUpEnabled(true)
+//            setDisplayShowHomeEnabled(true)
+//        }
 
+        // preping for list data view
         ongoingOrderAdapter = OngoingOrderAdapter(orderList, this)
-
         binding.rvOrders.apply {
             adapter = ongoingOrderAdapter
             layoutManager = LinearLayoutManager(this@OrderActivity)
+        }
+
+        textToSpeech = TextToSpeech(this, this)
+
+        setHoverListener(binding.btnBack,"Back to Dashboard")
+        binding.btnBack.setOnClickListener {
+            textToSpeech("Back to Dashboard")
+            finish()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -107,7 +125,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
 
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
-        Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Selected Booking ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
 
         // Prepare services list
         val servicesList = ArrayList<ServiceOrder>()
@@ -141,9 +159,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
         startActivity(intent)
     }
 
-
-
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
 
@@ -154,6 +169,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            // toolbar back button function
             android.R.id.home -> {
                 finish()
                 true
@@ -189,4 +205,52 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent {
             }
         }
     }
+    //text to speech
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun textToSpeech(text: String) {
+        if (!textToSpeech.isSpeaking) {
+            textToSpeech.stop()
+        }
+        Handler().postDelayed({
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }, 500)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setHoverListener(button: Button, text: String) {
+        button.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    if (!isClicked || !isSpeaking) {
+                        isSpeaking = true
+                        textToSpeech(text)
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    textToSpeech.stop()
+                    isClicked = false
+                }
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    isClicked = false
+                }
+            }
+            false
+        }
+    }
+
+    override fun onTTSRequested(text: String) {
+        textToSpeech(text)
+        Log.d("OrderActivity", "TTS Requested for text: $text")
+    }
+
 }
