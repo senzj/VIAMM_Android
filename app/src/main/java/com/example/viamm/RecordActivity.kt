@@ -1,10 +1,15 @@
 package com.example.viamm
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -24,8 +29,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.Locale
 
-class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
+@Suppress("DEPRECATION")
+class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityRecordBinding
     private lateinit var orderAdapter: CompletedOrderAdapter
@@ -33,13 +40,13 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
 
-    // Fetching data from the API
+    private lateinit var textToSpeech: TextToSpeech
+    private var isClicked = false
+    private var isSpeaking = false
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun fetchData() {
-        // Show loading dialog
         loadingDialog.show()
-
-        // Fetch data from the API
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
                 RetrofitClient.instance.getCompletedOrders()
@@ -64,8 +71,6 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
                     orderAdapter.updateOrders(newOrders)
                 }
             }
-
-            // Dismiss loading dialog
             loadingDialog.dismiss()
         }
     }
@@ -79,18 +84,25 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
-        }
+        ////toolbar back button
+//        supportActionBar?.apply {
+//            setDisplayHomeAsUpEnabled(true)
+//            setDisplayShowHomeEnabled(true)
+//        }
 
         loadingDialog = LoadingDialog(this)
-
         orderAdapter = CompletedOrderAdapter(orderList, this)
-
         binding.rvOrders.apply {
             adapter = orderAdapter
             layoutManager = LinearLayoutManager(this@RecordActivity)
+        }
+
+        textToSpeech = TextToSpeech(this, this)
+
+        setHoverListener(binding.btnBack,"Back to Dashboard")
+        binding.btnBack.setOnClickListener {
+            textToSpeech("Back to Dashboard")
+            finish()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -106,36 +118,29 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
         val selectedOrder = orderList[position]
         Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
 
-        // Prepare services list
         val servicesList = ArrayList<ServiceRecord>()
         selectedOrder.services.forEach { (serviceName, serviceDetails) ->
             val service = ServiceRecord(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
             servicesList.add(service)
         }
 
-        // Prepare intent to start EditOrderActivity
         val intent = Intent(this, EditRecordActivity::class.java).apply {
-            // Passing the basic data to EditOrderActivity
             putExtra("BOOKING_ID", selectedOrder.orderId)
-            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)  // Corrected to match key expected by EditRecordActivity
+            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)
             putExtra("BOOKING_COST", selectedOrder.totalCost)
-
-            // Pass services list as ParcelableArrayList
             putParcelableArrayListExtra("SERVICES", servicesList)
 
-            // Pass masseurs details individually
             selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
                 putExtra("MASSEUR_NAME", masseurName)
                 putExtra("MASSEUR_IS_AVAILABLE", isAvailable)
             }
 
-            // Pass locations details individually
             selectedOrder.locations.forEach { (locationName, isAvailable) ->
                 putExtra("LOCATION_NAME", locationName)
                 putExtra("LOCATION_IS_AVAILABLE", isAvailable)
             }
         }
-        // Logging Data passed
+
         Log.d("RecordActivity", "Selected Booking ID: ${selectedOrder.orderId}")
         Log.d("RecordActivity", "Selected Booking Status: ${selectedOrder.orderStatus}")
         Log.d("RecordActivity", "Selected Total Cost: ${selectedOrder.totalCost}")
@@ -151,36 +156,32 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
             Log.d("RecordActivity", "Location Availability: $isAvailable")
         }
 
-        // Start EditOrderActivity
-        startActivityForResult(intent, EDIT_ORDER_REQUEST_CODE)  // Use startActivityForResult
+        startActivityForResult(intent, EDIT_ORDER_REQUEST_CODE)
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
-
         menu?.findItem(R.id.btn_logout)?.isVisible = false
-
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
+            //toolbar back button function
+//            android.R.id.home -> {
+//                finish()
+//                true
+//            }
 
             R.id.btn_scanner -> {
+                textToSpeech("Money Scanner")
                 redirectToScanner()
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    //  Function to go Scanner Activity
     private fun redirectToScanner() {
         val intent = Intent(applicationContext, ScannerActivity::class.java)
         startActivity(intent)
@@ -191,7 +192,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
         fetchData()
     }
 
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDIT_ORDER_REQUEST_CODE && resultCode == RESULT_OK) {
@@ -200,5 +201,53 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent {
                 fetchData()
             }
         }
+    }
+
+    //text to speech
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun textToSpeech(text: String) {
+        if (!textToSpeech.isSpeaking) {
+            textToSpeech.stop()
+        }
+        Handler().postDelayed({
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }, 500)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setHoverListener(button: Button, text: String) {
+        button.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    if (!isClicked || !isSpeaking) {
+                        isSpeaking = true
+                        textToSpeech(text)
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    textToSpeech.stop()
+                    isClicked = false
+                }
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    isClicked = false
+                }
+            }
+            false
+        }
+    }
+
+    override fun onTTSRequested(text: String) {
+        textToSpeech(text)
+        Log.d("RecordActivity", "TTS Requested for text: $text")
     }
 }

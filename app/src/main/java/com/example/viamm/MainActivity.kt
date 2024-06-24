@@ -23,6 +23,7 @@ import com.example.viamm.databinding.ActivityMainBinding
 import com.example.viamm.storage.SharedData
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Initializing variables
@@ -52,15 +53,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val toolbar: Toolbar = binding.toolbar
         setSupportActionBar(toolbar)
 
-        // Initialize TextToSpeech
-        textToSpeech = TextToSpeech(this, this)
-
         // Initialize buttons
         val orderBtn: Button = binding.btnOrder
         val recordBtn: Button = binding.btnRecord
         val statisticsBtn: Button = binding.btnStatistics
 
-        // Set hover-like listeners for the buttons
+        // Initialize TextToSpeech
+        textToSpeech = TextToSpeech(this, this)
+
+        // Set hover-like listeners on buttons for text to speech
         setHoverListener(orderBtn, "Booking")
         setHoverListener(recordBtn, "Record")
         setHoverListener(statisticsBtn, "Statistics")
@@ -130,48 +131,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Other Functions =================================================================================
 
-    // Hold or Hover Listener event
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setHoverListener(button: Button, text: String) {
-        button.setOnTouchListener { _, event ->
-            when (event.action) {
-
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
-                    // check if the button is clicked and speaking
-                    if (!isClicked || !isSpeaking){
-                        isSpeaking = true
-                        Log.d("Main Activity", "Text to Speech Button Pressed")
-                        textToSpeech(text)
-                        Log.d("Main Activity", "Text to Speech Button Triggered")
-                    }
-                }
-
-                MotionEvent.ACTION_UP -> {
-                    textToSpeech.stop()
-                    isClicked = false
-                    Log.d("Main Activity", "Text to Speech Button Unpressed")
-
-                }
-
-                MotionEvent.ACTION_HOVER_EXIT -> {
-                    isClicked = false
-                    Log.d("Main Activity", "Text to Speech Hover Exit")
-                }
-            }
-            false // return false to let other touch events like click still work
-        }
-    }
-
-    // Text to Speech function
-    private fun textToSpeech(text: String) {
-        if (!textToSpeech.isSpeaking) {
-            textToSpeech.stop()
-        }
-        Handler().postDelayed({
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 525) // Adjust delay (300 milliseconds here) as per your preference
-    }
-
     // Redirect to order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
@@ -227,6 +186,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy() // Call the super method first
+        textToSpeech.stop()
+    }
+
     // Initialize TextToSpeech
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -239,9 +203,46 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy() // Call the super method first
-        textToSpeech.stop()
+    // Text to Speech function
+    private fun textToSpeech(text: String) {
+        if (!textToSpeech.isSpeaking) {
+            textToSpeech.stop()
+        }
+        Handler().postDelayed({
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+    }
+
+    // Hold or Hover Listener event for text to speech
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setHoverListener(button: Button, text: String) {
+        button.setOnTouchListener { _, event ->
+            when (event.action) {
+
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    // check if the button is clicked and speaking
+                    if (!isClicked || !isSpeaking){
+                        isSpeaking = true
+                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        textToSpeech(text)
+                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    textToSpeech.stop()
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+
+                }
+
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    isClicked = false
+                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                }
+            }
+            false // return false to let other touch events like click still work
+        }
     }
 
     // End of MainActivity ==========================================================================
