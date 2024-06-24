@@ -68,34 +68,39 @@ dependencies {
     implementation(libs.tensorflow.lite.metadata)
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.media3.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
 
     // Retrofit for network requests
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation(libs.retrofit2)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 
 
     // LiveData and ViewModel for lifecycle-aware components
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
+    implementation(libs.androidx.lifecycle.livedata.ktx.v282)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx.v282)
 
     // Navigation component for fragment and activity navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.2")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.2")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
 
     // Material Design components
-    implementation("com.google.android.material:material:1.4.0")
-    implementation("com.google.android.material:material:1.2.0")
+    implementation(libs.material.v140)
+    implementation(libs.material.v120)
 
     //courotine
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
 
     //TFLite
-    implementation("org.tensorflow:tensorflow-lite:2.4.0")
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.support.v020)
+    implementation(libs.tensorflow.lite.metadata.v020)
+    implementation(libs.tensorflow.lite.gpu.v290)
+
 
 }
