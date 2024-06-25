@@ -16,7 +16,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/toolbarColor"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:title="Booking Order"
+        app:title="Booking Detail"
         app:contentInsetEnd="0dp"
         app:contentInsetStart="0dp"
         app:contentInsetStartWithNavigation="0dp"

@@ -1,11 +1,17 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
+import android.widget.TableRow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -14,10 +20,16 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityPaymentBinding
+import com.example.viamm.models.CancelOrder.CancelOrderResponse
+import com.example.viamm.models.getOngoingOrder.ServiceOrder
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
-    //Variables
+    // Variables
     private lateinit var binding: ActivityPaymentBinding
     private lateinit var api: Api
 
@@ -26,9 +38,9 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isSpeaking = false
     private var isTTSInitialized = false
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
         binding = ActivityPaymentBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -42,17 +54,174 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initializing text to speech
         textToSpeech = TextToSpeech(this, this)
 
+        // Buttons and text view binding initialization
+        val etPaymentAmount = binding.etPaymentAmount
+        val tvPaymentStatus = binding.tvPaymentStatus
+
+        val btnOrderPayment = binding.btnOrderPayment
+        val btnOrderBack = binding.btnOrderBack
+
+        // Initializing text to speech
+        setHoverListener(btnOrderPayment!!, "Proceed to Payment")
+        setHoverListener(btnOrderBack!!, "Back")
+
+        // binding data to layout view
+        val orderId = intent.getStringExtra("BOOKING_ID")
+        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
+        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
+
+        //binding data to text view
+        binding.tvOrderID?.text = "Booking ID: $orderId"
+        binding.tvOrderStatus?.text = "Booking Status: $orderStatus"
+        binding.tvTotalCost?.text = "Total Amount: ₱$totalCost"
+
+        //binding service data to table
+        services?.forEach { service ->
+            val tableRow = TableRow(this)
+            Log.d("EditOrderActivity", "Service: $service")
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Amount
+            val amountTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.amount.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+            }
+            tableRow.addView(amountTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Name
+            val serviceNameTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
+                text = service.name
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+            }
+            tableRow.addView(serviceNameTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            // Service Price
+            val priceTextView = TextView(this).apply {
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                text = service.price.toString()
+                gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+            }
+            tableRow.addView(priceTextView)
+
+            // Add vertical line
+            tableRow.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
+                setBackgroundColor(Color.DKGRAY)
+            })
+
+            binding.tblOrder?.addView(tableRow)
+
+            // Add horizontal line after each row
+            binding.tblOrder?.addView(View(this).apply {
+                layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1.dpToPx())
+                setBackgroundColor(Color.DKGRAY)
+            })
+        }
+
+
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
+        // Functions for payment
+        btnOrderPayment.setOnClickListener {
+            val paymentAmount = etPaymentAmount?.text.toString().toIntOrNull()
 
+            if (paymentAmount != null) {
+                when {
+                    paymentAmount > totalCost -> {
+                        Toast.makeText(this, "Payment amount cannot be greater than total cost", Toast.LENGTH_SHORT).show()
+                        tvPaymentStatus?.text = "Payment Amount is More than the Total Amount"
+                    }
+                    paymentAmount < totalCost -> {
+                        Toast.makeText(this, "Payment amount cannot be less than total cost", Toast.LENGTH_SHORT).show()
+                        tvPaymentStatus?.text = "Payment Amount is Less than Total Amount"
+                    }
+                    else -> {
+                        // Data pass to the API then to the server
+                        val updatedStatus = "COMPLETED"
+
+                        if (orderId!!.isNotEmpty()) {
+                            api.updateOrderStatus(orderId, updatedStatus).enqueue(object : Callback<CancelOrderResponse> {
+                                override fun onResponse(call: Call<CancelOrderResponse>, response: Response<CancelOrderResponse>) {
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(this@PaymentActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
+                                        textToSpeech("Payment Successful")
+                                        Log.d("PaymentActivity", "Order Cancelled Successfully! Redirecting to previous activity")
+
+                                        // Set result for the previous activity
+                                        val resultIntent = Intent()
+                                        resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
+                                        setResult(RESULT_OK, resultIntent)
+
+                                        // Redirect to Order Activity
+                                        redirectToOrderActivity()
+
+                                    } else {
+                                        Toast.makeText(this@PaymentActivity, "An Error Occurred. Failed to Update the Order Status.", Toast.LENGTH_LONG).show()
+                                        Log.d("PaymentActivity", "An Error Occurred $response.")
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
+                                    Toast.makeText(this@PaymentActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                                    Log.d("PaymentActivity", "Error: ${t.message}")
+                                }
+                            })
+                        } else {
+                            Toast.makeText(this, "Order ID is missing", Toast.LENGTH_SHORT).show()
+                            textToSpeech("Order ID is missing")
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Please enter a valid payment amount", Toast.LENGTH_SHORT).show()
+                textToSpeech("Please enter a valid payment amount")
+                tvPaymentStatus?.text = "Please enter a valid payment amount"
+            }
+        }
+
+        btnOrderBack.setOnClickListener {
+            textToSpeech("Back to Booking Detail")
+            redirectToOrderActivity()
+        }
     }
 
-    //text to speech functions
-    // Initialize TextToSpeech
+    // Redirect to Order Activity
+    private fun redirectToOrderActivity() {
+        // Redirect to Order Activity
+        val intent = Intent(this, OrderActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    // Text to speech functions
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = textToSpeech.setLanguage(Locale.US)
@@ -69,44 +238,38 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Text to Speech function
     private fun textToSpeech(text: String) {
         if (isTTSInitialized) {
-            if (!textToSpeech.isSpeaking) {
-                textToSpeech.stop()
-            }
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         } else {
             Toast.makeText(this, "Text to Speech not initialized", Toast.LENGTH_SHORT).show()
         }
     }
-    // Hold or Hover Listener event for text to speech
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setHoverListener(button: Button, text: String) {
         button.setOnTouchListener { _, event ->
             when (event.action) {
-
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
                     textToSpeech.stop()
-                    // check if the button is clicked and speaking
-                    if (!isClicked || !isSpeaking){
+                    if (!isClicked || !isSpeaking) {
                         isSpeaking = true
-                        Log.d("EditOrderActivity", "Text to Speech Button Pressed")
+                        Log.d("PaymentActivity", "Text to Speech Button Pressed")
                         textToSpeech(text)
-                        Log.d("EditOrderActivity", "Text to Speech Button Triggered")
+                        Log.d("PaymentActivity", "Text to Speech Button Triggered")
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     textToSpeech.stop()
                     isClicked = false
-                    Log.d("EditOrderActivity", "Text to Speech Button Unpressed")
-
+                    Log.d("PaymentActivity", "Text to Speech Button Unpressed")
                 }
 
                 MotionEvent.ACTION_HOVER_EXIT -> {
                     isClicked = false
-                    Log.d("EditOrderActivity", "Text to Speech Hover Exit")
+                    Log.d("PaymentActivity", "Text to Speech Hover Exit")
                 }
             }
-            false // return false to let other touch events like click still work
+            false // Return false to let other touch events like click still work
         }
     }
 
@@ -115,5 +278,10 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textToSpeech.stop()
         textToSpeech.shutdown()
         super.onDestroy()
+    }
+
+    fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 }
