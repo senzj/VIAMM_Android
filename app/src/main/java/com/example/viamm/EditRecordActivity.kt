@@ -1,6 +1,7 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -175,8 +176,6 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textToSpeech("Back to Records")
             finish()
         }
-
-
     }
 
     // Extension function to convert dp to pixels

@@ -220,7 +220,8 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     ) {
                         if (response.isSuccessful) {
                             // Show success message
-                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Cancelled.", Toast.LENGTH_SHORT).show()
+                            textToSpeech("Booking Cancelled")
+                            Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
                             Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
 
                             // Set result for the previous activity
@@ -246,8 +247,14 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
+            redirectToOngoingBooking()
             finish()
         }
+    }
+
+    private fun redirectToOngoingBooking(){
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        startActivity(intent)
     }
 
     // Function to show the payment options dialog
@@ -282,7 +289,11 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
                             Log.d("EditOrderActivity", "Booking Details and data passed to Payment Activity")
                         }
+                        // Start the PaymentActivity
                         startActivity(intent)
+
+                        // Destroy the current activity
+                        finish()
                     }
 
                     1 -> {
@@ -305,7 +316,11 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
                             Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
                         }
+                        // Start the ScannerActivity
                         startActivity(intent)
+
+                        // Destroy the current activity
+                        finish()
                     }
                 }
             }
