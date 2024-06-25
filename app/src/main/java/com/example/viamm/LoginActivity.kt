@@ -53,6 +53,8 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         CompName = findViewById(R.id.input_username)
         CompPass = findViewById(R.id.input_password)
 
+        // Set up focus change listeners for both EditText
+        // This makes that when the user taps outside the EditText, the keyboard disappears
         setupFocusChangeListener(CompName)
         setupFocusChangeListener(CompPass)
 

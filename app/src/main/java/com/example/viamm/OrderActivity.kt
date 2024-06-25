@@ -9,7 +9,9 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -38,6 +40,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
     private var orderList: List<OngoingOrder> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
+    private lateinit var tvNoOngoingBooking: TextView
 
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
@@ -71,13 +74,20 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
                 }
             }
 
+            // if there are no ongoing booking then display this
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {
                     val newOrders = response.body()!!.orders
                     orderList = newOrders
                     ongoingOrderAdapter.updateOrders(newOrders)
+                    if (newOrders.isEmpty()) {
+                        tvNoOngoingBooking.visibility = View.VISIBLE
+                    } else {
+                        tvNoOngoingBooking.visibility = View.GONE
+                    }
                 }
             }
+
         }
     }
 
@@ -93,13 +103,11 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         loadingDialog = LoadingDialog(this)
 
         setSupportActionBar(binding.toolbar)
-        ////toolbar back button
-//        supportActionBar?.apply {
-//            setDisplayHomeAsUpEnabled(true)
-//            setDisplayShowHomeEnabled(true)
-//        }
 
-        // preping for list data view
+        // Initialize tvNoOngoingBooking for no ongoing booking
+        tvNoOngoingBooking = binding.tvNoOngoingBooking
+
+        // Preping for list data view
         ongoingOrderAdapter = OngoingOrderAdapter(orderList, this)
         binding.rvOrders.apply {
             adapter = ongoingOrderAdapter
@@ -156,7 +164,11 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
                 putExtra("LOCATION_IS_AVAILABLE", isAvailable)
             }
         }
+        // Start EditOrderActivity
         startActivity(intent)
+
+//        // Destroy the current activity
+//        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

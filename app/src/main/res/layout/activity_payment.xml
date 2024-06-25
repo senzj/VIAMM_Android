@@ -163,6 +163,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:hint="Enter Amount"
+            android:inputType="numberDecimal"
             app:layout_constraintStart_toEndOf="@id/tvPaymentAmount"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTotalCost" />
@@ -171,12 +172,12 @@
             android:id="@+id/tvPaymentStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="152dp"
+            android:layout_marginStart="96dp"
             android:layout_marginTop="4dp"
             android:padding="8dp"
             android:textColor="@android:color/holo_red_dark"
             android:textSize="13sp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/etPaymentAmount" />
 
         <Button

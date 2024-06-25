@@ -220,14 +220,19 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     ) {
                         if (response.isSuccessful) {
                             // Show success message
-                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Cancelled.", Toast.LENGTH_SHORT).show()
+                            textToSpeech("Booking Cancelled")
+                            Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
                             Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
 
                             // Set result for the previous activity
                             val resultIntent = Intent()
                             resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
                             setResult(RESULT_OK, resultIntent)
-                            finish()
+
+                            Handler().postDelayed({
+                                finish()
+                            }, 500)
+                            Log.d("EditOrderActivity", "Redirecting to previous activity")
                         } else {
                             // Show error message
                             Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
@@ -246,7 +251,9 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
-            finish()
+            Handler().postDelayed({
+                finish()
+            },1000)
         }
     }
 
@@ -282,7 +289,13 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
                             Log.d("EditOrderActivity", "Booking Details and data passed to Payment Activity")
                         }
+                        // Start the PaymentActivity
                         startActivity(intent)
+
+                        // Destroy the current activity
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
                     }
 
                     1 -> {
@@ -305,7 +318,13 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
                             Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
                         }
+                        // Start the ScannerActivity
                         startActivity(intent)
+
+                        // Destroy the current activity
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
                     }
                 }
             }
