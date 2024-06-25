@@ -228,7 +228,11 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             val resultIntent = Intent()
                             resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
                             setResult(RESULT_OK, resultIntent)
-                            finish()
+
+                            Handler().postDelayed({
+                                finish()
+                            }, 500)
+                            Log.d("EditOrderActivity", "Redirecting to previous activity")
                         } else {
                             // Show error message
                             Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
@@ -247,14 +251,10 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
-            redirectToOngoingBooking()
-            finish()
+            Handler().postDelayed({
+                finish()
+            },1000)
         }
-    }
-
-    private fun redirectToOngoingBooking(){
-        val intent = Intent(applicationContext, OrderActivity::class.java)
-        startActivity(intent)
     }
 
     // Function to show the payment options dialog
@@ -293,7 +293,9 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         startActivity(intent)
 
                         // Destroy the current activity
-                        finish()
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
                     }
 
                     1 -> {
@@ -320,7 +322,9 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         startActivity(intent)
 
                         // Destroy the current activity
-                        finish()
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
                     }
                 }
             }

@@ -172,12 +172,14 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (paymentAmount != null) {
                 when {
                     paymentAmount > totalCost -> {
-                        Toast.makeText(this, "Payment amount cannot be greater than total cost", Toast.LENGTH_SHORT).show()
-                        tvPaymentStatus?.text = "Payment Amount is More than the Total Amount"
-                        Log.d("PaymentActivity", "Payment Amount is More than the Total Amount")
+                        Toast.makeText(this, "Payment Amount is greater than Total Amount", Toast.LENGTH_SHORT).show()
+                        textToSpeech("Payment Amount input is Greater than the Total Amount")
+                        tvPaymentStatus?.text = "Payment Amount is Greater than the Total Amount"
+                        Log.d("PaymentActivity", "Payment Amount is Greater than the Total Amount")
                     }
                     paymentAmount < totalCost -> {
-                        Toast.makeText(this, "Payment amount cannot be less than total cost", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Payment Amount is less than Total Amount", Toast.LENGTH_SHORT).show()
+                        textToSpeech("Payment Amount input is Less than the Total Amount")
                         tvPaymentStatus?.text = "Payment Amount is Less than Total Amount"
                         Log.d("PaymentActivity", "Payment Amount is Less than Total Amount")
                     }
@@ -204,7 +206,7 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                                         // Dismiss loading dialog after 700 milliseconds
                                         Handler().postDelayed({
-                                            redirectToOrderActivity()
+                                            finish()
                                             processloadingDialog.dismiss()
                                         }, 1500)
 
@@ -238,16 +240,11 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
-            redirectToOrderActivity()
+            Handler().postDelayed({
+                finish()
+            },1000)
         }
-    }
 
-    // Redirect to Order Activity
-    private fun redirectToOrderActivity() {
-        // Redirect to Order Activity
-        val intent = Intent(this, OrderActivity::class.java)
-        startActivity(intent)
-        finish()
     }
 
     //  When the focus changes or clicked anywhere, hide the keyboard

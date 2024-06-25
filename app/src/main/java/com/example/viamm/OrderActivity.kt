@@ -167,8 +167,8 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         // Start EditOrderActivity
         startActivity(intent)
 
-        // Destroy the current activity
-        finish()
+//        // Destroy the current activity
+//        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
