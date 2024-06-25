@@ -31,6 +31,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_order" />
 
+        <!--If there are no available ongoing booking-->
+        <TextView
+            android:id="@+id/tvNoRecordBooking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No new record added yet."
+            android:visibility="gone"
+            android:textSize="18sp"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintBottom_toTopOf="@id/btnBack"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
         <Button
             android:id="@+id/btnBack"
             android:layout_width="0dp"

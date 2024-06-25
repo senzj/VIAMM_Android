@@ -1,6 +1,8 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -36,6 +38,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityEditOrderBinding
@@ -44,6 +47,12 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
     private var isSpeaking = false
+    private var isTTSInitialized = false
+
+    private var orderId: String? = null
+    private var orderStatus: String? = null
+    private var totalCost: Int = 0
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,14 +83,14 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // Retrieve the data from the Intent
-        val orderId = intent.getStringExtra("BOOKING_ID")
-        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
+        orderId = intent.getStringExtra("BOOKING_ID")
+        orderStatus = intent.getStringExtra("BOOKING_STATUS")
 
         // Retrieve list of services (ParcelableArrayList)
         val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
 
         // Total Cost
-        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+        totalCost = intent.getIntExtra("BOOKING_COST", 0)
 
         // Other data for debugging and future use
         // Masseur
@@ -106,8 +115,8 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val spannableString = SpannableString(statusText)
 
         if (orderStatus?.equals("on-going", ignoreCase = true) == true) {
-            val start = statusText.indexOf(orderStatus, ignoreCase = true)
-            val end = start + orderStatus.length
+            val start = statusText.indexOf(orderStatus!!, ignoreCase = true)
+            val end = start + orderStatus!!.length
             spannableString.setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Ongoing)),
                 start,
@@ -117,7 +126,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // Update UI components
-        binding.tvOrderID.text = "Booking Number: $orderId"
+        binding.tvOrderID.text = "Booking ID: $orderId"
         binding.tvOrderStatus.text = spannableString
         binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
 
@@ -186,11 +195,16 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             })
         }
 
-        // Set Payment button click listener to open camera (scanner Activity)
+        // set hover listener for text to speech
+        textToSpeech = TextToSpeech(this, this)
+        setHoverListener(binding.btnOrderPayment, "Proceed to Payment")
+        setHoverListener(binding.btnCancelOrder, "Cancel Order")
+        setHoverListener(binding.btnOrderBack, "Back")
+
+        // Set Payment button click listener to open a dialog box which let them pick manual payment or use money scan
         binding.btnOrderPayment.setOnClickListener {
-            val intent = Intent(this, ScannerActivity::class.java)
-            startActivity(intent)
-            finish()
+            textToSpeech("Select Payment Options")
+            showPaymentOptionsDialog()
         }
 
         // Set click listener for cancel button
@@ -206,14 +220,19 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     ) {
                         if (response.isSuccessful) {
                             // Show success message
-                            Toast.makeText(this@EditOrderActivity, "Order ID \"$orderId\" Cancelled.", Toast.LENGTH_SHORT).show()
+                            textToSpeech("Booking Cancelled")
+                            Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
                             Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
 
                             // Set result for the previous activity
                             val resultIntent = Intent()
                             resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
                             setResult(RESULT_OK, resultIntent)
-                            finish()
+
+                            Handler().postDelayed({
+                                finish()
+                            }, 500)
+                            Log.d("EditOrderActivity", "Redirecting to previous activity")
                         } else {
                             // Show error message
                             Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
@@ -228,17 +247,90 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 })
         }
-        // set hover listener for text to speech
-        textToSpeech = TextToSpeech(this, this)
-        setHoverListener(binding.btnOrderPayment, "Proceed to Payment")
-        setHoverListener(binding.btnCancelOrder, "Cancel Order")
-        setHoverListener(binding.btnOrderBack, "Back to Ongoing Booking")
 
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
-            textToSpeech("Back Button Pressed")
-            finish()
+            textToSpeech("Back to Ongoing Booking")
+            Handler().postDelayed({
+                finish()
+            },1000)
         }
+    }
+
+    // Function to show the payment options dialog
+    private fun showPaymentOptionsDialog() {
+        // Create an AlertDialog.Builder
+        val builder = AlertDialog.Builder(this, R.style.CustomAlertDialog)
+
+        // Retrieve the list of services (ParcelableArrayList)
+        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
+
+        // Set the title and the items to display in the dialog
+        builder.setTitle("Select Payment Options")
+            .setItems(arrayOf("Manual Input Payment", "Scan Money Payment")) { _, which ->
+                when (which) {
+                    0 -> {
+                        // Text to speech
+                        textToSpeech("Manual Input Option Selected")
+                        Log.d("EditOrderActivity", "Manual Input Payment Selected")
+
+                        // Handle Manual Input Payment
+                        Toast.makeText(this, "Manual Payment Selected", Toast.LENGTH_SHORT).show()
+
+                        // Navigate to Manual Payment Activity or handle the logic with passing the data
+                        val intent = Intent(this, PaymentActivity::class.java).apply {
+                            // Booking Details
+                            putExtra("BOOKING_ID", orderId)
+                            putExtra("BOOKING_STATUS", orderStatus)
+                            putExtra("BOOKING_COST", totalCost)
+
+                            // Service Details for table view
+                            putParcelableArrayListExtra("SERVICES", services)
+                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
+                            Log.d("EditOrderActivity", "Booking Details and data passed to Payment Activity")
+                        }
+                        // Start the PaymentActivity
+                        startActivity(intent)
+
+                        // Destroy the current activity
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
+                    }
+
+                    1 -> {
+                        // Text to speech
+                        textToSpeech("Scan Money Option Selected")
+                        Log.d("EditOrderActivity", "Scan Money Payment Selected")
+
+                        // Handle Scan Money Input Payment
+                        Toast.makeText(this, "Scan Money Selected", Toast.LENGTH_SHORT).show()
+
+                        // Navigate to Scan Money Activity or handle the logic
+                        val intent = Intent(this, ScannerActivity::class.java).apply {
+                            // Booking Details
+                            putExtra("BOOKING_ID", orderId)
+                            putExtra("BOOKING_STATUS", orderStatus)
+                            putExtra("BOOKING_COST", totalCost)
+
+                            // Service Details for table view
+                            putParcelableArrayListExtra("SERVICES", services)
+                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
+                            Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
+                        }
+                        // Start the ScannerActivity
+                        startActivity(intent)
+
+                        // Destroy the current activity
+                        Handler().postDelayed({
+                            finish()
+                        }, 3000)
+                    }
+                }
+            }
+
+        // Create and show the dialog
+        builder.create().show()
     }
 
     fun Int.dpToPx(): Int {
@@ -246,11 +338,12 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (this * density).toInt()
     }
 
+    // Remove the logout button if it exists
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
 
-        // Remove the logout button if it exists
         menu?.findItem(R.id.btn_logout)?.isVisible = false
+        menu?.findItem(R.id.btn_scanner)?.isVisible = false
 
         return true
     }
@@ -275,6 +368,8 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val result = textToSpeech.setLanguage(Locale.US)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+            } else {
+                isTTSInitialized = true
             }
         } else {
             Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
@@ -283,14 +378,15 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Text to Speech function
     private fun textToSpeech(text: String) {
-        if (!textToSpeech.isSpeaking) {
-            textToSpeech.stop()
-        }
-        Handler().postDelayed({
+        if (isTTSInitialized) {
+            if (!textToSpeech.isSpeaking) {
+                textToSpeech.stop()
+            }
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+        } else {
+            Toast.makeText(this, "Text to Speech not initialized", Toast.LENGTH_SHORT).show()
+        }
     }
-
     // Hold or Hover Listener event for text to speech
     @SuppressLint("ClickableViewAccessibility")
     private fun setHoverListener(button: Button, text: String) {
@@ -298,29 +394,37 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             when (event.action) {
 
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
+                    textToSpeech.stop()
                     // check if the button is clicked and speaking
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
-                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        Log.d("EditOrderActivity", "Text to Speech Button Pressed")
                         textToSpeech(text)
-                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                        Log.d("EditOrderActivity", "Text to Speech Button Triggered")
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     textToSpeech.stop()
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+                    Log.d("EditOrderActivity", "Text to Speech Button Unpressed")
 
                 }
 
                 MotionEvent.ACTION_HOVER_EXIT -> {
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                    Log.d("EditOrderActivity", "Text to Speech Hover Exit")
                 }
             }
             false // return false to let other touch events like click still work
         }
+    }
+
+    override fun onDestroy() {
+        // Shutdown TextToSpeech when activity is destroyed
+        textToSpeech.stop()
+        textToSpeech.shutdown()
+        super.onDestroy()
     }
 }
 

@@ -9,7 +9,9 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +41,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
     private var orderList: List<Orders> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
+    private lateinit var tvNoRecordBooking: TextView
 
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
@@ -64,14 +67,21 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
                 return@launch
             }
 
-            if (response.isSuccessful && response.body() != null) {
-                withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
+                if (response.isSuccessful && response.body() != null) {
                     val newOrders = response.body()!!.orders
                     orderList = newOrders
                     orderAdapter.updateOrders(newOrders)
+                    if (newOrders.isEmpty()) {
+                        tvNoRecordBooking.visibility = View.VISIBLE
+                    } else {
+                        tvNoRecordBooking.visibility = View.GONE
+                    }
+                } else {
+                    Toast.makeText(applicationContext, "Failed to fetch orders", Toast.LENGTH_SHORT).show()
                 }
+                loadingDialog.dismiss()
             }
-            loadingDialog.dismiss()
         }
     }
 
@@ -83,6 +93,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         binding = ActivityRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize toolbar
         setSupportActionBar(binding.toolbar)
         ////toolbar back button
 //        supportActionBar?.apply {
@@ -90,14 +101,21 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
 //            setDisplayShowHomeEnabled(true)
 //        }
 
+        // Initialize loading dialog
         loadingDialog = LoadingDialog(this)
+
+        // Initialize loading dialog
+        textToSpeech = TextToSpeech(this, this)
+
+        // Initialize tvNoOngoingBooking for no ongoing booking
+        tvNoRecordBooking = binding.tvNoRecordBooking
+
+        // Initialize order adapter
         orderAdapter = CompletedOrderAdapter(orderList, this)
         binding.rvOrders.apply {
             adapter = orderAdapter
             layoutManager = LinearLayoutManager(this@RecordActivity)
         }
-
-        textToSpeech = TextToSpeech(this, this)
 
         setHoverListener(binding.btnBack,"Back to Dashboard")
         binding.btnBack.setOnClickListener {
@@ -110,7 +128,6 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
         fetchData()
     }
 

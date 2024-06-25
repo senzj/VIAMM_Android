@@ -2,6 +2,7 @@ package com.example.viamm
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.*
 import android.graphics.Paint
 import android.graphics.RectF
@@ -15,10 +16,12 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.viamm.loadings.MainLoading
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
@@ -42,6 +45,7 @@ class ScannerActivity : AppCompatActivity() {
     lateinit var handlerThread: HandlerThread
     lateinit var interpreter: Interpreter
     lateinit var labels: List<String>
+    lateinit var PaymentBtn: Button
     private lateinit var loadingDialog: MainLoading
 
     var colors = listOf(
@@ -52,12 +56,14 @@ class ScannerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
+        // Set the status bar color
+        window.statusBarColor = ContextCompat.getColor(this, R.color.StatusBarColor)
+
         setContentView(R.layout.activity_scanner)
 
         // Initialize loading dialog
         loadingDialog = MainLoading(this)
-        loadingDialog.show()
 
         // Load labels
         labels = FileUtil.loadLabels(this, "labelmap.txt")
@@ -92,7 +98,34 @@ class ScannerActivity : AppCompatActivity() {
             }
         }
 
+        // Initialize the Payment Button
+        PaymentBtn = findViewById(R.id.btnScanMoney)
+        PaymentBtn.setOnClickListener {
+            redirectToPayment()
+        }
+
+        // Camera initialization
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    }
+
+    // Redirect to Payment Activity
+    private fun redirectToPayment() {
+        // Show the loading dialog
+        loadingDialog.show()
+
+        // relaying the data from edit order to payment
+        val orderId = intent.getStringExtra("BOOKING_ID")
+        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
+        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+
+        // Service Details for table view
+
+        // Other functions and logics here
+
+
+        // Start the payment activity
+        val intent = Intent(applicationContext, PaymentActivity::class.java)
+        startActivity(intent)
     }
 
     private fun getTensorBufferUsingReflection(tensor: Tensor): ByteBuffer {
@@ -163,8 +196,7 @@ class ScannerActivity : AppCompatActivity() {
                     Log.d("ScannerActivity", "Scanner Camera Opened")
                 }
 
-                override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
-                }
+                override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {}
 
                 override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                     return false
@@ -173,7 +205,6 @@ class ScannerActivity : AppCompatActivity() {
                 override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
                     moneyScanner()
                 }
-
 
             }
         }
@@ -186,7 +217,7 @@ class ScannerActivity : AppCompatActivity() {
         return exp.map { (it / sum).toFloat() }.toFloatArray()
     }
 
-    fun moneyScanner (){
+    fun moneyScanner() {
         // Calculate scaling factor based on smaller dimension
         val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
 

@@ -1,6 +1,7 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -169,14 +170,12 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             })
         }
         // Set hover listener for back button
-        setHoverListener(binding.btnRecordBack, "Back to Records")
+        setHoverListener(binding.btnRecordBack, "Back")
 
         binding.btnRecordBack.setOnClickListener {
-            textToSpeech("Back Button Pressed")
+            textToSpeech("Back to Records")
             finish()
         }
-
-
     }
 
     // Extension function to convert dp to pixels
@@ -200,6 +199,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         menu?.findItem(R.id.btn_logout)?.isVisible = false
+        menu?.findItem(R.id.btn_scanner)?.isVisible = false
         return true
     }
 
@@ -247,22 +247,22 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     // check if the button is clicked and speaking
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
-                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        Log.d("Edit Record Activity", "Text to Speech Button Pressed")
                         textToSpeech(text)
-                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                        Log.d("Edit Record Activity", "Text to Speech Button Triggered")
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     textToSpeech.stop()
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+                    Log.d("Edit Record Activity", "Text to Speech Button Unpressed")
 
                 }
 
                 MotionEvent.ACTION_HOVER_EXIT -> {
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                    Log.d("Edit Record Activity", "Text to Speech Hover Exit")
                 }
             }
             false // return false to let other touch events like click still work

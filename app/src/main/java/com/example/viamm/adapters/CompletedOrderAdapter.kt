@@ -48,7 +48,7 @@ class CompletedOrderAdapter(
                                 listener.onTTSRequested("Booking ID: ${order.orderId}, Booking Status: ${order.orderStatus}, Total Amount: ${order.totalCost}")
                                 Log.d("RecordAdapter", "Touch detected for Booking ID: ${order.orderId}")
                             }
-                        }, 70) //
+                        }, 75) //
                     }
                     MotionEvent.ACTION_UP -> {
                         isTouched = false
