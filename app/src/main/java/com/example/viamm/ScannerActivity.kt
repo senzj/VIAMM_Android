@@ -16,14 +16,13 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.viamm.loadings.MainLoading
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.Tensor
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
@@ -181,6 +180,12 @@ class ScannerActivity : AppCompatActivity() {
         Log.d("ScannerActivity", "Scanner Activity Resumed")
     }
 
+    fun softmax(logits: FloatArray): FloatArray {
+        val exp = logits.map { Math.exp(it.toDouble()) }
+        val sum = exp.sum()
+        return exp.map { (it / sum).toFloat() }.toFloatArray()
+    }
+
     fun moneyScanner (){
         // Calculate scaling factor based on smaller dimension
         val scaleFactor = minOf(imageView.width / 320.0f, imageView.height / 320.0f)
@@ -207,7 +212,7 @@ class ScannerActivity : AppCompatActivity() {
 
             // Allocate output buffers with appropriate sizes
             val outputLocations = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Bounding box locations
-            val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10, 19), DataType.FLOAT32) // Detection classes
+            val outputClasses = TensorBuffer.createFixedSize(intArrayOf(1, 10, 4), DataType.FLOAT32) // Detection classes
             val outputScores = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Detection scores
             val outputDetections = TensorBuffer.createFixedSize(intArrayOf(1, 10), DataType.FLOAT32) // Number of detections
 
@@ -232,20 +237,17 @@ class ScannerActivity : AppCompatActivity() {
             val scores = outputScores.floatArray
             val classes = Array(outputClasses.shape[1]) { IntArray(outputClasses.shape[2]) }
 
-            Log.d("TENSOR LOG", "Scores: ${outputScores.floatArray.joinToString(", ")}")
-            Log.d("TENSOR LOG", "Classes: ${classes.map { it[0] }.joinToString(", ")}") // Extract top class indices
-            Log.d("TENSOR LOG", "Number of Detections: ${outputDetections.floatArray.joinToString(", ")}")
-            Log.d("TENSOR LOG", "Raw Locations (Bytes): ${rawLocationsBytes.joinToString(", ")}")
-
             for (i in 0 until outputClasses.shape[1]) {
-                val classProbabilities = outputClasses.floatArray.sliceArray(i* outputClasses.shape[2] until (i + 1) * outputClasses.shape[2])
-                val maxIndex = classProbabilities.indices.maxByOrNull { classProbabilities[it] } ?: -1
+                val classProbabilities = outputClasses.floatArray.sliceArray(i * outputClasses.shape[2] until (i + 1) * outputClasses.shape[2])
+                val probabilities = softmax(classProbabilities) // Apply softmax here
+                val maxIndex = probabilities.indices.maxByOrNull { probabilities[it] } ?: -1 // Find max index from probabilities
                 classes[i][0] = maxIndex
             }
 
-            val scoreThreshold = 0.075f // Adjust this as needed
+            val scoreThreshold = 0.6f // Adjust this as needed
+            val classCounts = HashMap<String, Int>()
 
-            val numDetections = scores.count { it > scoreThreshold }
+            val numDetections = scores.count { it > scoreThreshold}
 
             // Create a mutable bitmap for drawing
             val mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -261,41 +263,58 @@ class ScannerActivity : AppCompatActivity() {
 
                 val score = scores[i]
 
-                val startIndex = i * coordinatesPerDetection
-                // Check if enough coordinates are available
-                if (startIndex + 3 < rawLocationsBytes.size && i < classes.size) {
-                    val ymin = (rawLocationsBytes[startIndex].toInt() and 0xFF) / 255.0f
-                    val xmin = (rawLocationsBytes[startIndex + 1].toInt() and 0xFF) / 255.0f
-                    val ymax = (rawLocationsBytes[startIndex + 2].toInt() and 0xFF) / 255.0f
-                    val xmax = (rawLocationsBytes[startIndex + 3].toInt() and 0xFF) / 255.0f
-
-                    val imageWidth = bitmap.width
-                    val imageHeight = bitmap.height
-
-                    // Calculate box dimensions based on normalized coordinates
-                    val boxLeft = xmin * imageWidth
-                    val boxTop = ymin * imageHeight
-                    val boxRight = xmax * imageWidth
-                    val boxBottom = ymax * imageHeight
-
-                    paint.color = colors[i % colors.size]
-                    paint.style = Paint.Style.STROKE
-                    canvas.drawRect(
-                        RectF(
-                            boxLeft, boxTop,
-                            boxRight, boxBottom
-                        ), paint
-                    )
-                    paint.style = Paint.Style.FILL
-                    val predictedClassIndex = classes[i][0]
-                    val className = if (predictedClassIndex in labels.indices) labels[predictedClassIndex] else "Unknown"
-                    canvas.drawText("$className  %.2f%%".format(score * 100), boxRight, boxTop, paint)
+                if (score > 0.80f){
+                    continue
                 }
+
+                val predictedClassIndex = classes[i][0]
+                val className = if (predictedClassIndex in labels.indices) labels[predictedClassIndex] else "Unknown"
+                classCounts[className] = classCounts[className]?.plus(1) ?: 1
+
+//                val startIndex = i * coordinatesPerDetection
+//                // Check if enough coordinates are available
+//                if (startIndex + 3 < rawLocationsBytes.size && i < classes.size) {
+//                    val ymin = (rawLocationsBytes[startIndex].toInt() and 0xFF) / 255.0f
+//                    val xmin = (rawLocationsBytes[startIndex + 1].toInt() and 0xFF) / 255.0f
+//                    val ymax = (rawLocationsBytes[startIndex + 2].toInt() and 0xFF) / 255.0f
+//                    val xmax = (rawLocationsBytes[startIndex + 3].toInt() and 0xFF) / 255.0f
+//
+//                    val imageWidth = bitmap.width
+//                    val imageHeight = bitmap.height
+//
+//                    // Calculate box dimensions based on normalized coordinates
+//                    val boxLeft = xmin * imageWidth
+//                    val boxTop = ymin * imageHeight
+//                    val boxRight = xmax * imageWidth
+//                    val boxBottom = ymax * imageHeight
+//
+//                    paint.color = colors[i % colors.size]
+//                    paint.style = Paint.Style.STROKE
+//                    canvas.drawRect(
+//                        RectF(
+//                            boxLeft, boxTop,
+//                            boxRight, boxBottom
+//                        ), paint
+//                    )
+//                    paint.style = Paint.Style.FILL
+//                    val predictedClassIndex = classes[i][0]
+//                    val className = if (predictedClassIndex in labels.indices) labels[predictedClassIndex] else "Unknown"
+//                    canvas.drawText("$className  %.2f%%".format(score * 100), boxRight, boxTop, paint)
+//                }
             }
 
             // Display annotated bitmap in the ImageView
             runOnUiThread {
+                val countsText = classCounts.map { "${it.key}: ${it.value}" }.joinToString("\n")
+                // Assuming you have a TextView with ID "classCountsTextView" in your layout
+                val classCountsTextView = findViewById<TextView>(R.id.counterView)
+                classCountsTextView.text = countsText
+
                 imageView.setImageBitmap(mutable)
+                Log.d("TENSOR LOG", "Scores: ${outputScores.floatArray.joinToString(", ")}")
+                Log.d("TENSOR LOG", "Classes: ${classes.map { it[0] }.joinToString(", ")}") // Extract top class indices
+                Log.d("TENSOR LOG", "Number of Detections: ${outputDetections.floatArray.joinToString(", ")}")
+                Log.d("TENSOR LOG", "Raw Locations (Bytes): ${rawLocationsBytes.joinToString(", ")}")
             }
         }
     }
