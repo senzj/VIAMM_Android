@@ -6,6 +6,7 @@
     <color name="green">#00DC00</color>
     <color name="bluegreen">#78F6F6</color>
     <color name="lavender">#8080DC</color>
+    <color name="grey">#A6A6A6</color>
 
 <!--Toolbar colors-->
     <color name="toolbarColor">#7f421f</color>
