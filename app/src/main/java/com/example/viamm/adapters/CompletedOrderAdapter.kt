@@ -58,15 +58,6 @@ class CompletedOrderAdapter(
                     MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_MOVE -> {
                         isTouched = false
                     }
-                    MotionEvent.ACTION_HOVER_ENTER -> {
-                        isTouched = true
-                        handler.postDelayed({
-                            if (isTouched) {
-                                listener.onTTSRequested("Booking ID: ${order.orderId}, Booking Status: ${order.orderStatus}, Total Amount: ${order.totalCost}")
-                                Log.d("RecordAdapter", "Hover detected for Booking ID: ${order.orderId}")
-                            }
-                        }, 500) // 500ms delay
-                    }
                     MotionEvent.ACTION_HOVER_EXIT -> {
                         isTouched = false
                     }

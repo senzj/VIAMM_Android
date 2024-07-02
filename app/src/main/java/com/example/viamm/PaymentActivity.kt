@@ -240,11 +240,16 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
+            redirectToOrder()
             Handler().postDelayed({
                 finish()
             },1000)
         }
 
+    }
+    private fun redirectToOrder() {
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        startActivity(intent)
     }
 
     //  When the focus changes or clicked anywhere, hide the keyboard

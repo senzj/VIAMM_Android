@@ -251,10 +251,16 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
             textToSpeech("Back to Ongoing Booking")
+            redirectToOrder()
             Handler().postDelayed({
                 finish()
             },1000)
         }
+    }
+
+    private fun redirectToOrder() {
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        startActivity(intent)
     }
 
     // Function to show the payment options dialog
