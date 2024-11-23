@@ -2,7 +2,7 @@
     <string name="app_name">VIAMM</string>
 
 
-    <!-- Define an array resource for the Spinner options -->
+    <!-- Define an array resource for the Spinner options (deprecated)-->
     <string-array name="order_status_options">
         <item>ONGOING</item>
         <item>CANCELLED</item>
