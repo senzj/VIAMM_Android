@@ -42,37 +42,38 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     // Action bar/menu
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
-
-        // Remove the logout button if it exists
-        menu?.findItem(R.id.btn_logout)?.isVisible = false
-
-        return true
-    }
-
-    // Action bar item selected
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.btn_logout -> {
-                logout()
-                true
-            }
-
-            // back button on the action bar
-            android.R.id.home -> {
-                finish()
-                true
-            }
-
-            R.id.btn_scanner -> {
-                redirectToScanner()
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.toolbar_menu, menu)
+//
+//        // Remove the logout and scanner button if it exists
+//        menu?.findItem(R.id.btn_logout)?.isVisible = false
+//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
+//
+//        return true
+//    }
+//
+//    // Action bar item selected
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.btn_logout -> {
+//                logout()
+//                true
+//            }
+//
+//            // back button on the action bar
+//            android.R.id.home -> {
+//                finish()
+//                true
+//            }
+//
+//            R.id.btn_scanner -> {
+//                redirectToScanner()
+//                true
+//            }
+//
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
 // Other Functions =================================================================================
 
@@ -89,10 +90,10 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     //  Function to go Scanner Activity
-    private fun redirectToScanner() {
-        val intent = Intent(applicationContext, ScannerActivity::class.java)
-        startActivity(intent)
-    }
+//    private fun redirectToScanner() {
+//        val intent = Intent(applicationContext, ScannerActivity::class.java)
+//        startActivity(intent)
+//    }
 
 //    End of Statistics Activity ===================================================================
 }

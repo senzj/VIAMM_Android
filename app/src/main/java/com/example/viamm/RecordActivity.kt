@@ -110,7 +110,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         // Initialize tvNoOngoingBooking for no ongoing booking
         tvNoRecordBooking = binding.tvNoRecordBooking
 
-        // Initialize order adapter
+        // Initialize order adapter for list views
         orderAdapter = CompletedOrderAdapter(orderList, this)
         binding.rvOrders.apply {
             adapter = orderAdapter
@@ -131,10 +131,43 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         fetchData()
     }
 
+    // Item List View
+    // variable for clickings
+    private var lastClickTime: Long = 0
+    private val clickDelay: Long = 2000 // Time window for detecting double-click in milliseconds
+
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
-        Toast.makeText(this, "Selected Order ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
+        val currentTime = System.currentTimeMillis()
 
+        // Single-click or Double-click logic
+        if (currentTime - lastClickTime < clickDelay) {
+            // Double-click detected
+            onDoubleClick(selectedOrder)
+        } else {
+            // Single-click detected
+            onSingleClick(selectedOrder)
+        }
+
+        // Update the last click time
+        lastClickTime = currentTime
+    }
+
+    // Change the function parameter to Orders instead of Order
+    private fun onSingleClick(selectedOrder: Orders) {
+        // Provide Text-to-Speech feedback for the selected order
+        val ttsText = "Booking ID: ${selectedOrder.orderId}, Status: ${selectedOrder.orderStatus}, Total Cost: ${selectedOrder.totalCost} selected."
+        textToSpeech(ttsText)  // Assuming `textToSpeech` is a function that handles the TTS functionality
+
+        Log.d("RecordActivity", "Single-click: $ttsText")
+    }
+
+    private fun onDoubleClick(selectedOrder: Orders) {
+        // Provide Text-to-Speech feedback for redirection
+        val ttsText = "Redirecting to Record details for Booking ID: ${selectedOrder.orderId}"
+        textToSpeech(ttsText)
+
+        // Redirect to EditRecordActivity with all the relevant data
         val servicesList = ArrayList<ServiceRecord>()
         selectedOrder.services.forEach { (serviceName, serviceDetails) ->
             val service = ServiceRecord(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
@@ -158,57 +191,61 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
             }
         }
 
-        Log.d("RecordActivity", "Selected Booking ID: ${selectedOrder.orderId}")
-        Log.d("RecordActivity", "Selected Booking Status: ${selectedOrder.orderStatus}")
-        Log.d("RecordActivity", "Selected Total Cost: ${selectedOrder.totalCost}")
-        Log.d("RecordActivity", "Selected Services: $servicesList")
+        // add a loading for visual reasons
+        loadingDialog.show()
 
-        selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
-            Log.d("RecordActivity", "Masseur Name: $masseurName")
-            Log.d("RecordActivity", "Masseur Availability: $isAvailable")
-        }
+        // Timer using Handler to delay code execution
+        Handler().postDelayed({
+            // This is the code that will run after the delay
+            // Put your code here that you want to execute after a delay
+            Log.d("RecordActivity", "Proceeding to next step after TTS delay")
 
-        selectedOrder.locations.forEach { (locationName, isAvailable) ->
-            Log.d("RecordActivity", "Location Name: $locationName")
-            Log.d("RecordActivity", "Location Availability: $isAvailable")
-        }
+            // starts the next activity
+            startActivity(intent)
 
-        startActivityForResult(intent, EDIT_ORDER_REQUEST_CODE)
+            loadingDialog.dismiss()
+
+        }, 4000) // 2000 milliseconds = 2 seconds
+
+        Log.d("RecordActivity", "Double-click: Redirecting to Edit Record for Booking ID: ${selectedOrder.orderId}")
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
-        menu?.findItem(R.id.btn_logout)?.isVisible = false
-        return true
-    }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            //toolbar back button function
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.toolbar_menu, menu)
+//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
+//        menu?.findItem(R.id.btn_logout)?.isVisible = false
+//        return true
+//    }
+//
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            //toolbar back button function
 //            android.R.id.home -> {
 //                finish()
 //                true
 //            }
+//
+//            R.id.btn_scanner -> {
+//                textToSpeech("Money Scanner")
+//                redirectToScanner()
+//                true
+//            }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
-            R.id.btn_scanner -> {
-                textToSpeech("Money Scanner")
-                redirectToScanner()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun redirectToScanner() {
-        val intent = Intent(applicationContext, ScannerActivity::class.java)
-        startActivity(intent)
-    }
+//    private fun redirectToScanner() {
+//        val intent = Intent(applicationContext, ScannerActivity::class.java)
+//        startActivity(intent)
+//    }
 
     override fun onResume() {
         super.onResume()
         fetchData()
     }
 
+    //
     @Deprecated("This method has been deprecated in favor of using the Activity Result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -220,7 +257,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         }
     }
 
-    //text to speech
+    // text to speech
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = textToSpeech.setLanguage(Locale.US)

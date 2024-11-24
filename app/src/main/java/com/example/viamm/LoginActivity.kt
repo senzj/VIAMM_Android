@@ -1,6 +1,7 @@
 package com.example.viamm
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -133,6 +134,14 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                         SharedData.getInstance(applicationContext).saveUser(loginResponse.user)
                                         SharedData.getInstance(applicationContext).isLoggedIn = true
 
+                                        // After saving user data in LoginActivity
+                                        saveUserData(applicationContext, "session_user", username)
+
+                                        // Debugging to check if the session_username is saved correctly
+                                        val sharedPref = getSharedPreferences("session_user", Context.MODE_PRIVATE)
+                                        val savedUsername = sharedPref.getString("session_user", "VIAMM")
+                                        Log.d("LoginActivity", "Saved username: $savedUsername")  // Check if the value is being saved
+
                                         // add a delay of 2 for texttospeech
                                         Handler().postDelayed({
                                             Log.d("LoginActivity", "Welcome to VIAMM, $username")
@@ -264,6 +273,15 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Handler().postDelayed({
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         }, 525) // Adjust delay (300 milliseconds here) as per your preference
+    }
+
+    // Function to save user data (e.g., session token, username)
+    fun saveUserData(context: Context, key: String, value: String) {
+        val sharedPref = context.getSharedPreferences("session", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString(key, value)
+            apply()
+        }
     }
 
     // Initialize TextToSpeech

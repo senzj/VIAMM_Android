@@ -89,7 +89,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 end,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-        } else if (orderStatus?.equals("complete", ignoreCase = true) == true) {
+        } else if (orderStatus?.equals("completed", ignoreCase = true) == true) {
             val start = statusText.indexOf(orderStatus, ignoreCase = true)
             val end = start + orderStatus.length
             spannableString.setSpan(
@@ -196,23 +196,23 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.d("EditRecordActivity", "Error: ${t.message}")
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
-        menu?.findItem(R.id.btn_logout)?.isVisible = false
-        menu?.findItem(R.id.btn_scanner)?.isVisible = false
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            //toolbar back button function
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.toolbar_menu, menu)
+//        menu?.findItem(R.id.btn_logout)?.isVisible = false
+//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
+//        return true
+//    }
+//
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            //toolbar back button function
 //            android.R.id.home -> {
 //                finish()
 //                true
 //            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
     //text to speech functions
     // Initialize TextToSpeech

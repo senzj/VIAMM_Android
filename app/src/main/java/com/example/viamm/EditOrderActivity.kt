@@ -339,27 +339,27 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // Remove the logout button if it exists
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
-
-        menu?.findItem(R.id.btn_logout)?.isVisible = false
-        menu?.findItem(R.id.btn_scanner)?.isVisible = false
-
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-
-            // toolbar back button function
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.toolbar_menu, menu)
+//
+//        menu?.findItem(R.id.btn_logout)?.isVisible = false
+//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
+//
+//        return true
+//    }
+//
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//
+//            // toolbar back button function
 //            android.R.id.home -> {
 //                finish()
 //                true
 //            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+//
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
     //text to speech functions
     // Initialize TextToSpeech

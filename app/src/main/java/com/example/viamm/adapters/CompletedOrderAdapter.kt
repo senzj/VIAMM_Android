@@ -38,41 +38,56 @@ class CompletedOrderAdapter(
 
         private fun handleTouch(event: MotionEvent) {
             val position = adapterPosition
+            // Check if the touch event is associated with a valid item in the list
             if (position != RecyclerView.NO_POSITION) {
-                val order = orderList[position]
+                val order = orderList[position] // Get the order object based on the current position
                 when (event.action) {
+                    // Handle ACTION_DOWN or ACTION_HOVER_ENTER (i.e., when the touch begins or the pointer enters the element)
                     MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
-                        isTouched = true
+                        isTouched = true // Mark the element as being touched
+                        // Post a delayed Runnable to trigger TTS for the order details after a brief delay (75ms)
                         handler.postDelayed({
                             if (isTouched) {
+                                // Trigger Text-to-Speech with order details for visually impaired users
                                 listener.onTTSRequested("Booking ID: ${order.orderId}, Booking Status: ${order.orderStatus}, Total Amount: ${order.totalCost}")
                                 Log.d("RecordAdapter", "Touch detected for Booking ID: ${order.orderId}")
                             }
-                        }, 75) //
+                        }, 75) // 75ms delay before triggering TTS (for a quick touch/hover)
                     }
+
+                    // Handle ACTION_UP (i.e., when the touch is released)
                     MotionEvent.ACTION_UP -> {
-                        isTouched = false
+                        isTouched = false // Mark the element as not being touched anymore
+                        // Trigger Text-to-Speech to confirm selection of the booking
                         listener.onTTSRequested("Booking ID: ${order.orderId} selected")
                         Log.d("RecordAdapter", "Booking ID: ${order.orderId} selected")
                     }
+
+                    // Handle ACTION_CANCEL or ACTION_MOVE (i.e., touch is moved or cancelled)
                     MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_MOVE -> {
-                        isTouched = false
+                        isTouched = false // Mark the element as not being touched anymore
                     }
+
+                    // Handle ACTION_HOVER_ENTER (i.e., when the pointer hovers over the item)
                     MotionEvent.ACTION_HOVER_ENTER -> {
-                        isTouched = true
+                        isTouched = true // Mark as hovered
+                        // Post a delayed Runnable to trigger TTS with order details after a longer delay (500ms)
                         handler.postDelayed({
                             if (isTouched) {
                                 listener.onTTSRequested("Booking ID: ${order.orderId}, Booking Status: ${order.orderStatus}, Total Amount: ${order.totalCost}")
                                 Log.d("RecordAdapter", "Hover detected for Booking ID: ${order.orderId}")
                             }
-                        }, 500) // 500ms delay
+                        }, 500) // 500ms delay for hover detection
                     }
+
+                    // Handle ACTION_HOVER_EXIT (i.e., when the pointer stops hovering over the item)
                     MotionEvent.ACTION_HOVER_EXIT -> {
-                        isTouched = false
+                        isTouched = false // Mark as not being hovered anymore
                     }
                 }
             }
         }
+
 
         override fun onClick(v: View?) {
             val position = adapterPosition

@@ -131,10 +131,49 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         fetchData()
     }
 
-    override fun onItemClicked(position: Int) {
-        val selectedOrder = orderList[position]
-        Toast.makeText(this, "Selected Booking ID: ${selectedOrder.orderId}", Toast.LENGTH_SHORT).show()
+    // Item List View
+    // variable for clickings
+    private var lastClickTime: Long = 0
+    private val clickDelay: Long = 500 // Time window for detecting double-click in milliseconds
 
+    override fun onItemClicked(position: Int) {
+        val selectedOrder = orderList[position] // Assuming orderList is of type List<OngoingOrder>
+        val currentTime = System.currentTimeMillis()
+
+        // Check if the click is a double-click
+        if (currentTime - lastClickTime < clickDelay) {
+            // Double-click detected
+            onDoubleClick(selectedOrder)
+        } else {
+            // Single-click detected
+            onSingleClick(selectedOrder)
+        }
+
+        // Update the last click time
+        lastClickTime = currentTime
+    }
+
+    // Single-click handler
+    private fun onSingleClick(selectedOrder: OngoingOrder) {
+        // Provide Text-to-Speech feedback for the selected order
+        val ttsText = "Booking ID: ${selectedOrder.orderId}, Status: ${selectedOrder.orderStatus}, Total Cost: ${selectedOrder.totalCost} selected."
+        textToSpeech(ttsText)
+
+        // Log details
+        Log.d("OrderActivity", "Single-click: $ttsText")
+    }
+
+    // Double-click handler
+    private fun onDoubleClick(selectedOrder: OngoingOrder) {
+        // Provide Text-to-Speech feedback for double-click
+        val ttsText = "Redirecting to Booking details for Booking ID: ${selectedOrder.orderId}"
+        textToSpeech(ttsText)
+
+        // Optionally perform other actions for double-clicks
+        // You can log or do something else on double-click
+        Log.d("OrderActivity", "Double-clicked: Redirecting to Edit Order for Booking ID: ${selectedOrder.orderId}")
+
+        // Start activity or perform any other double-click action here
         // Prepare services list
         val servicesList = ArrayList<ServiceOrder>()
         selectedOrder.services.forEach { (serviceName, serviceDetails) ->
@@ -152,55 +191,68 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
             // Pass services list as ParcelableArrayList
             putParcelableArrayListExtra("SERVICES", servicesList)
 
-            // Pass masseurs details individually
+            // Pass masseur details individually
             selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
                 putExtra("MASSEUR_NAME", masseurName)
                 putExtra("MASSEUR_IS_AVAILABLE", isAvailable)
             }
 
-            // Pass locations details individually
+            // Pass location details individually
             selectedOrder.locations.forEach { (locationName, isAvailable) ->
                 putExtra("LOCATION_NAME", locationName)
                 putExtra("LOCATION_IS_AVAILABLE", isAvailable)
             }
         }
-        // Start EditOrderActivity
-        startActivity(intent)
 
-//        // Destroy the current activity
-//        finish()
+        // add a loading for visual reasons
+        loadingDialog.show()
+
+        // Timer using Handler to delay code execution
+        Handler().postDelayed({
+            // This is the code that will run after the delay
+            // Put your code here that you want to execute after a delay
+            Log.d("OrderActivity", "Proceeding to next step after TTS delay")
+
+            // starts the next activity
+            startActivity(intent)
+
+            loadingDialog.dismiss()
+
+        }, 3000) // 2000 milliseconds = 2 seconds
+
+        Log.d("OrderActivity", "Double-click: Redirecting to Edit Booking for Booking ID: ${selectedOrder.orderId}")
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
 
-        menu?.findItem(R.id.btn_logout)?.isVisible = false
-
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            // toolbar back button function
-            android.R.id.home -> {
-                finish()
-                true
-            }
-
-            R.id.btn_scanner -> {
-                redirectToScanner()
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.toolbar_menu, menu)
+//        menu?.findItem(R.id.btn_logout)?.isVisible = false
+//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
+//        return true
+//    }
+//
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            // toolbar back button function
+//            android.R.id.home -> {
+//                finish()
+//                true
+//            }
+//
+//            R.id.btn_scanner -> {
+//                redirectToScanner()
+//                true
+//            }
+//
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
     //  Function to go Scanner Activity
-    private fun redirectToScanner() {
-        val intent = Intent(applicationContext, ScannerActivity::class.java)
-        startActivity(intent)
-    }
+//    private fun redirectToScanner() {
+//        val intent = Intent(applicationContext, ScannerActivity::class.java)
+//        startActivity(intent)
+//    }
 
     override fun onResume() {
         super.onResume()
