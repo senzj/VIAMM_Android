@@ -32,7 +32,7 @@ object RetrofitClient {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
-                    .addHeader("X-API-KEY", "viamm_key") // Add the required X-API-KEY header
+                    .addHeader("X-API-KEY", Utils.API_KEY) // Add the required X-API-KEY header
                     .addHeader("Authorization", basicAuth) // Add the Basic Auth header
                     .method(original.method, original.body)
                 val request = requestBuilder.build()

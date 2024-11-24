@@ -15,10 +15,11 @@ import retrofit2.http.POST
 
 interface Api {
 
-    // API to handle data inputed by user and sending it to codeginiter
+    // API to handle data input by user and sending it to server controller
     @FormUrlEncoded
     @POST("login")
     fun login(
+        // the field will the the variable accepted in the server controller
         @Field("username") username: String,
         @Field("password") password: String
     ): Call<LoginResponse>
@@ -34,7 +35,7 @@ interface Api {
 
     ): Response<OngoingOrderResponse>
 
-    // API to handle data updated by user and sending it to codeginiter
+    // API to handle data updated by user and sending it to server controller
     @FormUrlEncoded
     @POST("order/update")
     fun updateOrder(
@@ -44,7 +45,7 @@ interface Api {
         @Field("orderStatus") status: String
     ): Call<UpdateOrdersResponse>
 
-    // API to handle data updated status by user and sending it to codeginiter
+    // API to handle data updated status by user and sending it to server controller
     @FormUrlEncoded
     @POST("order/update")
     fun updateOrderStatus(

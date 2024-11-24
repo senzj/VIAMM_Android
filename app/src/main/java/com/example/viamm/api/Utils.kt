@@ -14,4 +14,6 @@ object Utils {
     } else {
         "https://IP.xyz/api/" // Change to your local IP
     }
+
+    val API_KEY = "viamm_mo_key_bile"
 }

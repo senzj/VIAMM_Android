@@ -23,6 +23,7 @@ import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 import java.net.UnknownHostException
 import java.util.Locale
 
@@ -65,11 +66,12 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setHoverListener(loginBtn,"Login")
 
         loginBtn.setOnClickListener {
-            textToSpeech("Logging in")
-
             val username = CompName.text.toString().trim()
             val password = CompPass.text.toString().trim()
 
+            textToSpeech("Logging in as, $username")
+
+            // Check if username or password is empty
             if (username.isEmpty()) {
                 CompName.error = "Please enter your username"
                 CompName.requestFocus()
@@ -89,73 +91,98 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             RetrofitClient.instance.login(username, password)
                 .enqueue(object : Callback<LoginResponse> {
+
                     override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                         // Dismiss loading dialog on failure
                         loadingDialog.dismiss()
 
-                        try {
-                            Toast.makeText(applicationContext, t.message, Toast.LENGTH_LONG).show()
-                            Log.e("LoginActivity > Retrofit", "onFailure: ${t.message}", t)
-                        } catch (e: UnknownHostException) {
-                            // This block specifically handles UnknownHostException
-                            Toast.makeText(applicationContext, "No internet connection, please connect to the internet", Toast.LENGTH_LONG).show()
-                            Log.e("LoginActivity to Retrofit", "onFailure: ${e.message}", e)
-                        } catch (e: Exception) {
-                            // This block handles other exceptions
-                            Toast.makeText(applicationContext, "An error occurred: ${e.message}", Toast.LENGTH_LONG).show()
-                            Log.e("LoginActivity to Retrofit", "onFailure: ${e.message}", e)
+                        // Handle network or other errors
+                        when (t) {
+                            is UnknownHostException -> {
+                                // No internet connection
+                                Toast.makeText(applicationContext, "No internet connection, please connect to the internet", Toast.LENGTH_LONG).show()
+                                Log.e("LoginActivity", "onFailure: No internet connection", t)
+                            }
+                            is IOException -> {
+                                // General network failure
+                                Toast.makeText(applicationContext, "Network error occurred: ${t.message}", Toast.LENGTH_LONG).show()
+                                Log.e("LoginActivity", "onFailure: Network error", t)
+                            }
+                            else -> {
+                                // Handle other exceptions
+                                Toast.makeText(applicationContext, "An error occurred, ${t.message}", Toast.LENGTH_LONG).show()
+                                Log.e("LoginActivity", "onFailure: ${t.message}", t)
+                            }
                         }
-
                     }
 
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                        // Dismiss loading dialog on response
-                        loadingDialog.dismiss()
 
-                        if (response.isSuccessful) {
-                            response.body()?.let { loginResponse ->
-                                if (!loginResponse.error) {
-                                    SharedData.getInstance(applicationContext).saveUser(loginResponse.user)
-                                    SharedData.getInstance(applicationContext).isLoggedIn = true
+                        // Introduce a delay of 2 seconds before proceeding
+                        Handler().postDelayed({
 
-                                    val intent = Intent(applicationContext, MainActivity::class.java)
-                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                    startActivity(intent)
+                            // Dismiss loading dialog on response
+                            loadingDialog.dismiss()
 
-                                    Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
-                                    Log.i("LoginActivity", "Login Success!")
+                            if (response.isSuccessful) {
 
-                                } else {
-                                    // Show the server error message
-                                    Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
-                                    Log.e("LoginActivity", "An Error Occurred: ${loginResponse.message}")
+                                // Handle successful response
+                                response.body()?.let { loginResponse ->
+                                    if (!loginResponse.error) {
+                                        // Save user info and set logged in flag
+                                        SharedData.getInstance(applicationContext).saveUser(loginResponse.user)
+                                        SharedData.getInstance(applicationContext).isLoggedIn = true
+
+                                        // add a delay of 2 for texttospeech
+                                        Handler().postDelayed({
+                                            Log.d("LoginActivity", "Welcome to VIAMM, $username")
+                                            textToSpeech("Login Success! Welcome to Vaiyam, $username")
+                                        }, 1000) // delay for 1 seconds
+
+                                        // Navigate to MainActivity
+                                        val intent = Intent(applicationContext, MainActivity::class.java)
+                                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                        startActivity(intent)
+
+                                        // Show success message
+                                        Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
+                                        Log.i("LoginActivity", "Login Success!")
+                                    } else {
+                                        // Show server error message
+                                        Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
+                                        Log.e("LoginActivity", "An Error Occurred: ${loginResponse.message}")
+                                    }
+                                } ?: run {
+                                    // If body is null
+                                    Toast.makeText(applicationContext, "Unknown error occurred", Toast.LENGTH_LONG).show()
+                                    Log.e("LoginActivity", "Fatal Error: Unknown error occurred")
                                 }
+                            } else {
+                                // Handle HTTP response errors like 401
+                                when (response.code()) {
+                                    401 -> {
+                                        val errorMessage = "Invalid username or password, please try again."
+                                        // Unauthorized - Incorrect credentials
+                                        Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
+                                        Log.e("LoginActivity", "Failed: $errorMessage")
 
-                            } ?: run {
-                                Toast.makeText(applicationContext, "Unknown error occurred", Toast.LENGTH_LONG).show()
-                                Log.e("LoginActivity", "Fatal Error: Unknown error occurred")
+                                        // Add TextToSpeech for 401 response
+                                        textToSpeech(errorMessage)
+                                    }
+                                    else -> {
+                                        // Other errors
+                                        val errorBody = response.errorBody()?.string()
+                                        Toast.makeText(applicationContext, "Unknown error occurred: $errorBody", Toast.LENGTH_LONG).show()
+                                        Log.e("LoginActivity", "Failed: $errorBody")
+                                    }
+                                }
                             }
-
-                        } else {
-                            // Handle different HTTP response codes
-                            when (response.code()) {
-                                401 -> {
-                                    val errorMessage = "Incorrect Username or Password"
-                                    // Unauthorized - Incorrect credentials
-                                    Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
-                                    Log.e("LoginActivity", "Failed: $errorMessage")
-                                }
-                                else -> {
-                                    // Other errors
-                                    val errorBody = response.errorBody()?.string()
-                                    Toast.makeText(applicationContext, "Unknown error occurred: $errorBody", Toast.LENGTH_LONG).show()
-                                    Log.e("LoginActivity", "Failed: $errorBody")
-                                }
-                            }
-                        }
+                        }, 3000) // 3000 milliseconds = 3 seconds delay for LOGIN
                     }
+
                 })
         }
+
 
         // Set up the touch listener for the entire layout, to listen for clicks outside the EditText
         findViewById<View>(R.id.login).setOnTouchListener { v, event ->
