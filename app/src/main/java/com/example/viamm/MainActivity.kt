@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Menu
@@ -32,11 +33,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isClicked = false
     private var isSpeaking = false
 
-    // OnCreate function of MainActivity
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Get permissions
         getPermission()
 
         // Initialize the binding
@@ -61,35 +63,138 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
 
-        // Set hover-like listeners on buttons for text to speech
-        setHoverListener(orderBtn, "Booking")
-        setHoverListener(recordBtn, "Record")
-        setHoverListener(statisticsBtn, "Statistics")
+        // Variable declaration for button click timing
+        val holdDuration = 350L // Duration in milliseconds to consider as a hold
+        val clickDelay = 300L // Delay in milliseconds for double-click detection
+        var lastClickTime = 0L
+        var isDoubleClick = false
+        var isHolding = false
 
-        // Set onClickListeners for button here
-        orderBtn.setOnClickListener {
-            isClicked = true
-            textToSpeech.stop()
-            redirectToOrder()
-            textToSpeech("Booking Selected")
+        // Function to handle touch events
+        fun handleTouchEvent(
+            event: MotionEvent,
+            buttonName: String,
+            // Callbacks for the following actions
+            onSingleClick: () -> Unit,
+            onDoubleClick: () -> Unit,
+            onHold: () -> Unit
+        ): Boolean {
+            // Check the type of touch action performed by the user
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Reset hold flag when the button is pressed down
+                    isHolding = false
+
+                    // Start a delayed handler to detect a hold action
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (!isDoubleClick && !isHolding && event.action != MotionEvent.ACTION_UP) {
+                            // If not a double-click and the button remains pressed, mark as holding
+                            isHolding = true
+                            onHold() // Trigger the hold callback
+                        }
+                    }, holdDuration) // Time to wait before considering it a hold
+                    return true // Indicate that the ACTION_DOWN event is handled
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    val currentTime = System.currentTimeMillis()
+
+                    // Check if the button was held
+                    if (isHolding) {
+                        // If the button was held, ignore click events
+                        isHolding = false
+                    } else {
+                        if (currentTime - lastClickTime < clickDelay) {
+                            // If the time difference is within the double-click threshold
+                            isDoubleClick = true
+                            onDoubleClick() // Trigger the double-click callback
+                        } else {
+                            // Otherwise, treat it as a single click
+                            isDoubleClick = false
+                            lastClickTime = currentTime
+
+                            // Delay the single-click execution to ensure it is not a double-click
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                if (!isDoubleClick) {
+                                    onSingleClick() // Trigger the single-click callback
+                                }
+                            }, clickDelay) // Wait for double-click detection before firing single click
+                        }
+                    }
+
+                    // Update the last click time to the current time
+                    lastClickTime = currentTime
+                }
+            }
+            return false // Return false to allow further event propagation if needed
         }
 
-        recordBtn.setOnClickListener {
-            isClicked = true
-            textToSpeech.stop()
-            redirectToRecord()
-            textToSpeech("Record Selected")
+// Set onTouchListeners for buttons
+        orderBtn.setOnTouchListener { _, event ->
+            handleTouchEvent(
+                event,
+                "Booking",
+                onSingleClick = {
+                    textToSpeech.stop()
+                    textToSpeech("Booking Selected")
+                },
+                onDoubleClick = {
+                    textToSpeech.stop()
+                    redirectToOrder()
+                    textToSpeech("Redirecting to Booking")
+                },
+                onHold = {
+                    textToSpeech.stop()
+                    textToSpeech("Holding Booking")
+                }
+            )
         }
 
-        statisticsBtn.setOnClickListener {
-            isClicked = true
-            textToSpeech.stop()
-            redirectToStatistics()
-            textToSpeech("Statistics Selected")
+        recordBtn.setOnTouchListener { _, event ->
+            handleTouchEvent(
+                event,
+                "Record",
+                onSingleClick = {
+                    textToSpeech.stop()
+                    textToSpeech("Records Selected")
+                },
+                onDoubleClick = {
+                    textToSpeech.stop()
+                    redirectToRecord()
+                    textToSpeech("Redirecting to Records")
+                },
+                onHold = {
+                    textToSpeech.stop()
+                    textToSpeech("Holding Records")
+                }
+            )
         }
+
+        statisticsBtn.setOnTouchListener { _, event ->
+            handleTouchEvent(
+                event,
+                "Analytics",
+                onSingleClick = {
+                    textToSpeech.stop()
+                    textToSpeech("Analytics Selected")
+                },
+                onDoubleClick = {
+                    textToSpeech.stop()
+                    redirectToStatistics()
+                    textToSpeech("Redirecting to Analytics")
+                },
+                onHold = {
+                    textToSpeech.stop()
+                    textToSpeech("Holding Analytics")
+                }
+            )
+        }
+
     }
 
-//  Override functions=============================================================
+
+
+    //  Override functions=============================================================
     // Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
@@ -223,22 +328,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     // check if the button is clicked and speaking
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
-                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        Log.d("MainActivity", "Text to Speech Button Pressed")
                         textToSpeech(text)
-                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                        Log.d("MainActivity", "Text to Speech Button Triggered")
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     textToSpeech.stop()
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+                    Log.d("MainActivity", "Text to Speech Button Unpressed")
 
                 }
 
                 MotionEvent.ACTION_HOVER_EXIT -> {
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                    Log.d("MainActivity", "Text to Speech Hover Exit")
                 }
             }
             false // return false to let other touch events like click still work
