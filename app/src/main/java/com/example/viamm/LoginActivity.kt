@@ -23,6 +23,7 @@ import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.net.UnknownHostException
 import java.util.Locale
 
 class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -92,8 +93,19 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         // Dismiss loading dialog on failure
                         loadingDialog.dismiss()
 
-                        Toast.makeText(applicationContext, t.message, Toast.LENGTH_LONG).show()
-                        Log.e("Login", "onFailure: ${t.message}", t)
+                        try {
+                            Toast.makeText(applicationContext, t.message, Toast.LENGTH_LONG).show()
+                            Log.e("LoginActivity > Retrofit", "onFailure: ${t.message}", t)
+                        } catch (e: UnknownHostException) {
+                            // This block specifically handles UnknownHostException
+                            Toast.makeText(applicationContext, "No internet connection, please connect to the internet", Toast.LENGTH_LONG).show()
+                            Log.e("LoginActivity to Retrofit", "onFailure: ${e.message}", e)
+                        } catch (e: Exception) {
+                            // This block handles other exceptions
+                            Toast.makeText(applicationContext, "An error occurred: ${e.message}", Toast.LENGTH_LONG).show()
+                            Log.e("LoginActivity to Retrofit", "onFailure: ${e.message}", e)
+                        }
+
                     }
 
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
@@ -111,17 +123,17 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                     startActivity(intent)
 
                                     Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
-                                    Log.i("Login", "Login Success!")
+                                    Log.i("LoginActivity", "Login Success!")
 
                                 } else {
                                     // Show the server error message
                                     Toast.makeText(applicationContext, loginResponse.message, Toast.LENGTH_LONG).show()
-                                    Log.e("Login", "An Error Occurred: ${loginResponse.message}")
+                                    Log.e("LoginActivity", "An Error Occurred: ${loginResponse.message}")
                                 }
 
                             } ?: run {
                                 Toast.makeText(applicationContext, "Unknown error occurred", Toast.LENGTH_LONG).show()
-                                Log.e("Login", "Fatal Error: Unknown error occurred")
+                                Log.e("LoginActivity", "Fatal Error: Unknown error occurred")
                             }
 
                         } else {
@@ -131,13 +143,13 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                     val errorMessage = "Incorrect Username or Password"
                                     // Unauthorized - Incorrect credentials
                                     Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
-                                    Log.e("Login", "Failed: $errorMessage")
+                                    Log.e("LoginActivity", "Failed: $errorMessage")
                                 }
                                 else -> {
                                     // Other errors
                                     val errorBody = response.errorBody()?.string()
                                     Toast.makeText(applicationContext, "Unknown error occurred: $errorBody", Toast.LENGTH_LONG).show()
-                                    Log.e("Login", "Failed: $errorBody")
+                                    Log.e("LoginActivity", "Failed: $errorBody")
                                 }
                             }
                         }
@@ -166,7 +178,7 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val intent = Intent(applicationContext, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            Log.i("Login", "Already Logged in")
+            Log.i("LoginActivity", "Already Logged in")
         }
     }
 
@@ -195,22 +207,22 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     // check if the button is clicked and speaking
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
-                        Log.d("Main Activity", "Text to Speech Button Pressed")
+                        Log.d("LoginActivity", "Text to Speech Button Pressed")
                         textToSpeech(text)
-                        Log.d("Main Activity", "Text to Speech Button Triggered")
+                        Log.d("LoginActivity", "Text to Speech Button Triggered")
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     textToSpeech.stop()
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Button Unpressed")
+                    Log.d("LoginActivity", "Text to Speech Button Unpressed")
 
                 }
 
                 MotionEvent.ACTION_HOVER_EXIT -> {
                     isClicked = false
-                    Log.d("Main Activity", "Text to Speech Hover Exit")
+                    Log.d("LoginActivity", "Text to Speech Hover Exit")
                 }
             }
             false // return false to let other touch events like click still work

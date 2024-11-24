@@ -6,7 +6,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.logging.HttpLoggingInterceptor
 
-object Utils {
-    const val BASE_URL = "https://viamm.xyz/api/" // change IP address to your local or hosting site URL/IP
+val Devmode = "1"
 
+object Utils {
+    val BASE_URL: String = if (Devmode == "1") {
+        "https://viamm.xyz/api/" // Change to your hosting URL
+    } else {
+        "https://IP.xyz/api/" // Change to your local IP
+    }
 }

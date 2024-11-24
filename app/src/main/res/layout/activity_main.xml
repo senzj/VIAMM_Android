@@ -24,8 +24,6 @@
         app:contentInsetEnd="0dp"
         tools:layout_editor_absoluteX="1dp" />
 
-
-
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
@@ -36,30 +34,33 @@
         <Button
             android:id="@+id/btn_order"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="150dp"
             android:padding="30dp"
             android:text="Booking"
-            android:textSize="20sp" />
+            android:textSize="30sp"
+            android:background="@color/Bookings"/>
 
         <Button
             android:id="@+id/btn_record"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="150dp"
             android:layout_below="@+id/btn_order"
             android:layout_marginTop="40dp"
             android:padding="30dp"
             android:text="Records"
-            android:textSize="20sp" />
+            android:textSize="30sp"
+            android:background="@color/Records"/>
 
         <Button
             android:id="@+id/btn_statistics"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="150dp"
             android:layout_below="@+id/btn_record"
             android:layout_marginTop="40dp"
             android:padding="30dp"
-            android:text="Statistics"
-            android:textSize="20sp" />
+            android:text="Analytics"
+            android:textSize="30sp"
+            android:background="@color/Analytics"/>
 
     </RelativeLayout>
 
