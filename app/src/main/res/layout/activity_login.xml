@@ -87,14 +87,16 @@
         <Button
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
-            android:layout_height="72dp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/field_password"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="40dp"
             android:backgroundTint="@color/green"
             android:textSize="30dp"
+            android:padding="18dp"
             android:shadowRadius="@integer/material_motion_duration_long_1"
             android:text="LOG IN"
+            android:textColor="@color/black"
             android:textStyle="bold" />
 
     </RelativeLayout>

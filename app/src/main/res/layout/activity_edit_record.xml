@@ -176,19 +176,20 @@
             android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/sv_tbl_rec" />
 
-
         <Button
             android:id="@+id/btnRecordBack"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="@color/APpColor"
+            android:layout_height="wrap_content"
             android:text="Back"
+            android:backgroundTint="@color/app_back"
             android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:padding="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvTotalCost"
-            app:layout_constraintVertical_bias="0.406"
-            tools:layout_editor_absoluteX="0dp" />
+            app:layout_constraintVertical_bias="0.9"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
