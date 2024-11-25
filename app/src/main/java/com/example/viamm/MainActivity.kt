@@ -151,61 +151,81 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
 // Set onTouchListeners for buttons
         orderBtn.setOnTouchListener { _, event ->
+            val button = "Booking"
+
             handleTouchEvent(
                 event,
                 "Booking",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("Booking Selected")
+                    textToSpeech("You have tapped on $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    redirectToOrder()
-                    textToSpeech("Redirecting to Booking")
+                    textToSpeech("You've selected $button. Redirecting now to $button.")
+
+                    // add a delay to redirecting to finish the tts
+                    Handler().postDelayed({
+                        redirectToOrder()
+                    }, 2000) // Adjust delay time in miliseconds
+
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding Booking")
+                    textToSpeech("Holding $button button.")
                 }
             )
         }
 
         recordBtn.setOnTouchListener { _, event ->
+            val button = "Records"
+
             handleTouchEvent(
                 event,
                 "Record",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("Records Selected")
+                    textToSpeech("You have tapped on $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
+                    textToSpeech("You've selected $button. Redirecting now to $button.")
+
+                    // add a delay to redirecting to finish the tts
+                    Handler().postDelayed({
                     redirectToRecord()
-                    textToSpeech("Redirecting to Records")
+                    }, 2000) // Adjust delay time in miliseconds
+
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding Records")
+                    textToSpeech("Holding $button button.")
                 }
             )
         }
 
         statisticsBtn.setOnTouchListener { _, event ->
+            val button = "Analytics"
+
             handleTouchEvent(
                 event,
                 "Analytics",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("Analytics Selected")
+                    textToSpeech("You have tapped on $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    redirectToStatistics()
-                    textToSpeech("Redirecting to Analytics")
+                    textToSpeech("You've selected $button. Redirecting now to $button.")
+
+                    // add a delay to redirecting to finish the tts
+                    Handler().postDelayed({
+                    redirectToRecord()
+                    }, 2000) // Adjust delay time in miliseconds
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding Analytics")
+                    textToSpeech("Holding $button button.")
                 }
             )
         }
@@ -241,7 +261,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // item menu hover text is impossible cuz there is no hover event
             R.id.btn_logout -> {
                 textToSpeech("Logging out")
-                logout()
+
+                // add a delay to redirecting to finish the tts
+                Handler().postDelayed({
+                    logout()
+                }, 1000) // Adjust delay time in miliseconds
                 true
             }
 
@@ -358,14 +382,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Function to handle logout
     private fun logout() {
+
         // Set the user as logged out
         SharedData.getInstance(this).isLoggedIn = false
 
         // Clear session data from SharedPreferences
         session_destroy()
-
-        // Optionally, you can notify the user that they are being logged out via TTS
-        textToSpeech("Logging out.")
 
         // Delay the redirection to allow TTS to finish
         Handler(Looper.getMainLooper()).postDelayed({

@@ -156,8 +156,9 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
     // Change the function parameter to Orders instead of Order
     private fun onSingleClick(selectedOrder: Orders) {
         // Provide Text-to-Speech feedback for the selected order
-        val ttsText = "Booking ID: ${selectedOrder.orderId}, Status: ${selectedOrder.orderStatus}, Total Cost: ${selectedOrder.totalCost} selected."
-        textToSpeech(ttsText)  // Assuming `textToSpeech` is a function that handles the TTS functionality
+        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, which has Total Amount of ${selectedOrder.totalCost} pesos."
+//        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, Masseur: ${selectedOrder.masseur}, which has Total Amount of ${selectedOrder.totalCost} pesos."
+        textToSpeech(ttsText)
 
         Log.d("RecordActivity", "Single-click: $ttsText")
     }

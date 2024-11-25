@@ -1,6 +1,7 @@
 package com.example.viamm.adapters
 
 import android.annotation.SuppressLint
+import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -8,7 +9,9 @@ import android.view.MotionEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.viamm.R
 import com.example.viamm.RecordActivity
 import com.example.viamm.databinding.ItemOrderBinding
 import com.example.viamm.models.Order.Orders
@@ -112,8 +115,41 @@ class CompletedOrderAdapter(
         val currentOrder = orderList[position]
         holder.binding.apply {
             tvOrderId.text = "Booking ID: ${currentOrder.orderId}"
-            tvOrderStatus.text = "Booking Status: ${currentOrder.orderStatus}"
-            tvOrderTotal.text = "Total Amount: ${currentOrder.totalCost}"
+//            tvOrderMasseur.text = "Masseur: ${}"
+            tvOrderStatus.text = currentOrder.orderStatus
+            tvOrderTotal.text = "Total Amount: ₱${currentOrder.totalCost}"
+
+
+            // Safely access context from parent, ensuring it's not null
+            val context = tvOrderStatus.context
+
+            // Using context to set the color
+            when (currentOrder.orderStatus) {
+                "COMPLETED" -> {
+                    tvOrderStatus.setTextColor(
+                        ContextCompat.getColor(context, R.color.Status_Complete)
+                    ) // Green for completed
+                    tvOrderStatus.setTypeface(null, Typeface.BOLD) // Make it bold
+                }
+                "CANCELLED" -> {
+                    tvOrderStatus.setTextColor(
+                        ContextCompat.getColor(context, R.color.Status_Cancelled)
+                    ) // Red for cancelled
+                    tvOrderStatus.setTypeface(null, Typeface.BOLD) // Make it bold
+                }
+                "ON-GOING" -> {
+                    tvOrderStatus.setTextColor(
+                        ContextCompat.getColor(context, R.color.Status_Ongoing)
+                    ) // Orange for on-going
+                    tvOrderStatus.setTypeface(null, Typeface.BOLD) // Make it bold
+                }
+                else -> {
+                    tvOrderStatus.setTextColor(
+                        ContextCompat.getColor(context, R.color.black)
+                    ) // Default to black if no match
+                    tvOrderStatus.setTypeface(null, Typeface.BOLD) // Make it bold
+                }
+            }
         }
     }
 

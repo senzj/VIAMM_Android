@@ -70,7 +70,12 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val username = CompName.text.toString().trim()
             val password = CompPass.text.toString().trim()
 
-            textToSpeech("Logging in as, $username")
+            if (username.isNotEmpty()) {
+                textToSpeech("Logging in as, $username")
+            } else {
+                textToSpeech("Username or password cannot be empty.")
+            }
+
 
             // Check if username or password is empty
             if (username.isEmpty()) {

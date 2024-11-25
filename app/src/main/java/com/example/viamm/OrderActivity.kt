@@ -156,7 +156,8 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
     // Single-click handler
     private fun onSingleClick(selectedOrder: OngoingOrder) {
         // Provide Text-to-Speech feedback for the selected order
-        val ttsText = "Booking ID: ${selectedOrder.orderId}, Status: ${selectedOrder.orderStatus}, Total Cost: ${selectedOrder.totalCost} selected."
+        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, which has Total Amount of ${selectedOrder.totalCost} pesos."
+//        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, Masseur: ${}, which has Total Amount of ${selectedOrder.totalCost} pesos."
         textToSpeech(ttsText)
 
         // Log details
