@@ -55,7 +55,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:backgroundTint="@color/APpColor"
+        android:backgroundTint="@color/AppColor"
         android:padding="30dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

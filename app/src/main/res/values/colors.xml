@@ -8,6 +8,7 @@
     <color name="bluegreen">#78F6F6</color>
     <color name="lavender">#8080DC</color>
     <color name="grey">#A6A6A6</color>
+    <color name="transparent"></color>
 
 <!-- App Background Color-->
     <color name="app_bg_color">#8ecfe6</color>
@@ -15,7 +16,7 @@
     <color name="app_back">#7699d5</color>
 
 <!-- Toolbar colors -->
-    <color name="APpColor">#7f421f</color>
+    <color name="AppColor">#7f421f</color>
     <color name="StatusBarColor">#dccdb8</color>
 
 <!-- Status Colors -->
@@ -24,8 +25,8 @@
     <color name="Status_Ongoing">#FF8C00</color>
 
 <!-- Custom Alert Dialong Colors -->
-    <color name="AlertDialogBG">#D2B48C</color>
-    <color name="AlertDialogText">#FFFFFFFF</color>
+    <color name="AlertDialogBG">#93C3CA</color>
+    <color name="AlertDialogText">#000000</color>
 
 <!-- Menu Button Colors -->
 <!--    <color name="Bookings">#69BFFF</color>-->

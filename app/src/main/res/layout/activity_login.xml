@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:fontFamily="monospace"
-            android:text="Welcome to Viamm"
+            android:text="Welcome to VIAMM"
             android:textSize="34sp"
             android:textStyle="bold" />
 

@@ -57,6 +57,7 @@ data class OngoingOrder(
     @SerializedName("masseurs") val masseurs: Map<String, Boolean>,
     @SerializedName("locations") val locations: Map<String, Boolean>,
     @SerializedName("totalCost") val totalCost: Int,
-    @SerializedName("orders_tbl_status") val orderStatus: String
+    @SerializedName("orders_tbl_status") val orderStatus: String,
+//    @SerializedName("orders_tbl_date") val orderDate: String",
 )
 

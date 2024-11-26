@@ -207,45 +207,64 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showPaymentOptionsDialog()
         }
 
+        // Constants for double-click timing
+        val DOUBLE_CLICK_TIME_DELTA =400L // 300 milliseconds
+
+        // Track the last click time
+        var lastClickTime: Long = 0
+
         // Set click listener for cancel button
         binding.btnCancelOrder.setOnClickListener {
-            val updatedStatus = "CANCELLED"
+            val clickTime = System.currentTimeMillis()
+            Log.d("EditOrderActivity", "Cancel Order Button Clicked. Time: $clickTime")
 
-            // Call the cancelOrder API endpoint
-            api.updateOrderStatus(orderId!!, updatedStatus)
-                .enqueue(object : Callback<CancelOrderResponse> {
-                    override fun onResponse(
-                        call: Call<CancelOrderResponse>,
-                        response: Response<CancelOrderResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            // Show success message
-                            textToSpeech("Booking Cancelled")
-                            Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
-                            Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
+            // if the user double clicked the button, cancel the order.
+            if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
+                // Double-click detected, proceed with cancellation
+                val updatedStatus = "CANCELLED"
 
-                            // Set result for the previous activity
-                            val resultIntent = Intent()
-                            resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
-                            setResult(RESULT_OK, resultIntent)
+                // Call the cancelOrder API endpoint
+                api.updateOrderStatus(orderId!!, updatedStatus)
+                    .enqueue(object : Callback<CancelOrderResponse> {
+                        override fun onResponse(
+                            call: Call<CancelOrderResponse>,
+                            response: Response<CancelOrderResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                // Show success message
+                                textToSpeech("Booking Cancelled")
+                                Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
+                                Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
 
-                            Handler().postDelayed({
-                                finish()
-                            }, 500)
-                            Log.d("EditOrderActivity", "Redirecting to previous activity")
-                        } else {
-                            // Show error message
-                            Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
-                            Log.d("EditOrderActivity", "An Error Occurred $response.")
+                                // Set result for the previous activity
+                                val resultIntent = Intent()
+                                resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
+                                setResult(RESULT_OK, resultIntent)
+
+                                Handler().postDelayed({
+                                    finish()
+                                }, 500)
+                                Log.d("EditOrderActivity", "Redirecting to previous activity")
+                            } else {
+                                // Show error message
+                                Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
+                                Log.d("EditOrderActivity", "An Error Occurred $response.")
+                            }
                         }
-                    }
 
-                    override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
-                        // Show error message
-                        Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                        Log.d("EditOrderActivity", "Error: ${t.message}")
-                    }
-                })
+                        override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
+                            // Show error message
+                            Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                            Log.d("EditOrderActivity", "Error: ${t.message}")
+                        }
+                    })
+            } else {
+                // Single click detected, provide TTS confirmation
+                textToSpeech("Are you sure you want to cancel Booking ID: $orderId? Double-click to confirm.")
+            }
+
+            // Update the last click time
+            lastClickTime = clickTime
         }
 
         // Set click listener for back button

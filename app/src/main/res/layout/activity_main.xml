@@ -8,7 +8,8 @@
     android:id="@+id/main"
     tools:context=".MainActivity"
     android:background="@drawable/viamm_bg"
-    >
+    android:fitsSystemWindows="true">
+    <!-- use for status bar -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -49,11 +50,13 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:layout_margin="20sp"
-            android:background="@color/Bookings"
+            android:backgroundTint="@color/Bookings"
+            android:background="@drawable/rounded_corner"
             android:padding="30dp"
             android:text="Booking"
             android:textSize="50sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            />
 
         <Button
             android:id="@+id/btn_record"
@@ -62,7 +65,8 @@
             android:layout_below="@+id/btn_order"
             android:layout_margin="20sp"
             android:layout_marginTop="40dp"
-            android:background="@color/Records"
+            android:backgroundTint="@color/Records"
+            android:background="@drawable/rounded_corner"
             android:padding="30dp"
             android:text="Records"
             android:textSize="50sp"
@@ -75,7 +79,8 @@
             android:layout_below="@+id/btn_record"
             android:layout_margin="20sp"
             android:layout_marginTop="40dp"
-            android:background="@color/Analytics"
+            android:backgroundTint="@color/Analytics"
+            android:background="@drawable/rounded_corner"
             android:padding="30dp"
             android:text="Analytics"
             android:textSize="45sp"

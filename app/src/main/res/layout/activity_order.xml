@@ -9,6 +9,7 @@
     android:background="@drawable/viamm_bg"
     tools:context=".OrderActivity">
 
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -21,6 +22,7 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Ongoing Booking" />
 
+    <!-- RecyclerView for ongoing bookings -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOrders"
         android:layout_width="0dp"
@@ -31,20 +33,41 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_order" />
 
-<!--If there are no available ongoing booking-->
+    <!-- Title -->
     <TextView
-        android:id="@+id/tvNoOngoingBooking"
+        android:id="@+id/tvNoOngoingBookingh1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No new booking added yet."
+        android:text="No bookings found 🙁"
+        android:textColor="@color/black"
         android:visibility="gone"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toTopOf="@id/btnBack"
+        android:textStyle="bold"
+        android:textSize="25sp"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.4" />
 
+
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/tvNoOngoingBookingh2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Looks like things are quiet for now 🤫. Start by creating a new booking on the web! 😁"
+        android:textColor="@color/black"
+        android:visibility="gone"
+        android:textStyle="normal"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:paddingTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvNoOngoingBookingh1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Back Button -->
     <Button
         android:id="@+id/btnBack"
         android:layout_width="match_parent"
@@ -52,12 +75,11 @@
         android:text="Back"
         android:backgroundTint="@color/app_back"
         android:textColor="@color/white"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:padding="30dp"
-        app:layout_constraintTop_toBottomOf="@id/rvOrders"
+        android:padding="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

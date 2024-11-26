@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.w3c.dom.Text
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.Locale
@@ -40,7 +41,8 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
     private var orderList: List<OngoingOrder> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
-    private lateinit var tvNoOngoingBooking: TextView
+    private lateinit var tvNoOngoingBookingh1: TextView
+    private lateinit var tvNoOngoingBookingh2: TextView
 
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
@@ -81,9 +83,16 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
                     orderList = newOrders
                     ongoingOrderAdapter.updateOrders(newOrders)
                     if (newOrders.isEmpty()) {
-                        tvNoOngoingBooking.visibility = View.VISIBLE
+                        tvNoOngoingBookingh1.visibility = View.VISIBLE
+                        tvNoOngoingBookingh2.visibility = View.VISIBLE
+                        binding.rvOrders.visibility = View.GONE
+
+                        textToSpeech.stop()
+                        textToSpeech("No Booking Found")
                     } else {
-                        tvNoOngoingBooking.visibility = View.GONE
+                        tvNoOngoingBookingh1.visibility = View.GONE
+                        tvNoOngoingBookingh2.visibility = View.GONE
+                        binding.rvOrders.visibility = View.VISIBLE
                     }
                 }
             }
@@ -105,7 +114,8 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         setSupportActionBar(binding.toolbar)
 
         // Initialize tvNoOngoingBooking for no ongoing booking
-        tvNoOngoingBooking = binding.tvNoOngoingBooking
+        tvNoOngoingBookingh1 = binding.tvNoOngoingBookingh1!!
+        tvNoOngoingBookingh2 = binding.tvNoOngoingBookingh2!!
 
         // Preping for list data view
         ongoingOrderAdapter = OngoingOrderAdapter(orderList, this)
