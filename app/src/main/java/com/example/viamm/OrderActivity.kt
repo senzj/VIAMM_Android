@@ -88,7 +88,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
                         binding.rvOrders.visibility = View.GONE
 
                         textToSpeech.stop()
-                        textToSpeech("No Booking Found")
+                        textToSpeech("No Bookings Found.")
                     } else {
                         tvNoOngoingBookingh1.visibility = View.GONE
                         tvNoOngoingBookingh2.visibility = View.GONE

@@ -197,6 +197,15 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 })
         }
 
+        // Handle the Done action on the password input
+        CompPass.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                loginBtn.performClick() // Simulate clicking the login button
+                true
+            } else {
+                false
+            }
+        }
 
         // Set up the touch listener for the entire layout, to listen for clicks outside the EditText
         findViewById<View>(R.id.login).setOnTouchListener { v, event ->

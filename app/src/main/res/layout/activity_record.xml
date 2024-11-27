@@ -31,31 +31,54 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_order" />
 
-        <!--If there are no available ongoing booking-->
+<!--If there are no available ongoing booking-->
+
+        <!-- Title -->
         <TextView
-            android:id="@+id/tvNoRecordBooking"
+            android:id="@+id/tvNoRecordBookingh1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No new record added yet."
+            android:text="No records found🙁"
+            android:textColor="@color/black"
             android:visibility="gone"
-            android:textSize="18sp"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
-            app:layout_constraintBottom_toTopOf="@id/btnBack"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_bias="0.5" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.4" />
 
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/tvNoRecordBookingh2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="It seems there are no past records to display right now🔍. Keep track of your bookings and check back later!☺️"
+            android:textColor="@color/black"
+            android:visibility="gone"
+            android:textStyle="normal"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:layout_margin="10dp"
+            app:layout_constraintTop_toBottomOf="@id/tvNoRecordBookingh1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Back Button -->
         <Button
             android:id="@+id/btnBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="30dp"
             android:text="Back"
-            android:textColor="@color/white"
             android:backgroundTint="@color/app_back"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/rvOrders"
+            android:padding="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

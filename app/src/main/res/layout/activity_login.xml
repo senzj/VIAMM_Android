@@ -12,9 +12,9 @@
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="252dp"
-        android:layout_height="224dp"
-        android:layout_marginTop="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="230dp"
+        android:layout_marginTop="45dp"
         android:src="@drawable/viamm_logo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -64,6 +64,8 @@
                 android:id="@+id/input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
+                android:singleLine="true"
                 android:hint="Company" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -81,7 +83,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:imeOptions="actionDone" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button

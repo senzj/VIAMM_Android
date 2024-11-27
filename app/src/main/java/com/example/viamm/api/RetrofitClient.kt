@@ -1,11 +1,12 @@
 package com.example.viamm.api
 
 import androidx.media3.common.BuildConfig
+import com.google.gson.GsonBuilder
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import okhttp3.logging.HttpLoggingInterceptor
 
 object RetrofitClient {
 
@@ -15,10 +16,9 @@ object RetrofitClient {
         "1A7*ajHy6p\$ag5" // Password
     )
 
-    // OkHttpClient with Interceptors
+    // OkHttpClient with Interceptors for logging and authentication
     private val okHttpClient: OkHttpClient by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            // Use Level.BASIC for production or use a build config to control this
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY // Log everything in debug
             } else {
@@ -26,7 +26,6 @@ object RetrofitClient {
             }
         }
 
-//
         OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
@@ -41,12 +40,17 @@ object RetrofitClient {
             .build()
     }
 
+    // Create a custom Gson instance with lenient parsing
+    private val gson = GsonBuilder()
+        .setLenient() // Make Gson lenient to malformed JSON
+        .create()
+
     // Retrofit instance
     val instance: Api by lazy {
         val retrofit = Retrofit.Builder()
             .baseUrl(Utils.BASE_URL) // Use the base URL from your Utils object
-            .addConverterFactory(GsonConverterFactory.create()) //
-            .client(okHttpClient) //
+            .addConverterFactory(GsonConverterFactory.create(gson)) // Use custom Gson
+            .client(okHttpClient)
             .build()
         retrofit.create(Api::class.java)
     }

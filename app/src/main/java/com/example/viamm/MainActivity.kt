@@ -224,7 +224,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     // add a delay to redirecting to finish the tts
                     Handler().postDelayed({
-                    redirectToRecord()
+                    redirectToStatistics()
                     }, 2000) // Adjust delay time in miliseconds
                 },
                 onHold = {
@@ -235,8 +235,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
     }
-
-
 
     //  Override functions=============================================================
     // Function lifecycle to check if user is logged in
@@ -299,8 +297,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Redirect to statistics activity
     private fun redirectToStatistics() {
-        val intent = Intent(applicationContext, StatisticsActivity::class.java)
-        startActivity(intent)
+//        val intent = Intent(applicationContext, StatisticsActivity::class.java)
+//        startActivity(intent)
     }
 
     // Function to go Scanner Activity

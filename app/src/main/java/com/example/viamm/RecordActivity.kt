@@ -41,7 +41,8 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
     private var orderList: List<Orders> = emptyList()
     private val EDIT_ORDER_REQUEST_CODE = 100
     private lateinit var loadingDialog: LoadingDialog
-    private lateinit var tvNoRecordBooking: TextView
+    private lateinit var tvNoRecordBookingh1: TextView
+    private lateinit var tvNoRecordBookingh2: TextView
 
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
@@ -73,9 +74,18 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
                     orderList = newOrders
                     orderAdapter.updateOrders(newOrders)
                     if (newOrders.isEmpty()) {
-                        tvNoRecordBooking.visibility = View.VISIBLE
+                        tvNoRecordBookingh1.visibility = View.VISIBLE
+                        tvNoRecordBookingh2.visibility = View.VISIBLE
+                        binding.rvOrders.visibility = View.GONE
+
+                        // if no records are found
+                        textToSpeech.stop()
+                        textToSpeech("No Records Found.")
+
                     } else {
-                        tvNoRecordBooking.visibility = View.GONE
+                        tvNoRecordBookingh1.visibility = View.GONE
+                        tvNoRecordBookingh2.visibility = View.GONE
+                        binding.rvOrders.visibility = View.VISIBLE
                     }
                 } else {
                     Toast.makeText(applicationContext, "Failed to fetch orders", Toast.LENGTH_SHORT).show()
@@ -108,7 +118,8 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         textToSpeech = TextToSpeech(this, this)
 
         // Initialize tvNoOngoingBooking for no ongoing booking
-        tvNoRecordBooking = binding.tvNoRecordBooking
+        tvNoRecordBookingh1 = binding.tvNoRecordBookingh1!!
+        tvNoRecordBookingh2 = binding.tvNoRecordBookingh2!!
 
         // Initialize order adapter for list views
         orderAdapter = CompletedOrderAdapter(orderList, this)
