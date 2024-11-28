@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
+//import org.jetbrains.kotlin.ir.backend.js.compile
 
 plugins {
     alias(libs.plugins.android.application)
