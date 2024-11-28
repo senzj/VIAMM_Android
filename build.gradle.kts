@@ -2,4 +2,7 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.jetbrains.kotlin.android) apply false
+
+    // extension to check and update dependencies or its version issues
+    id("com.github.ben-manes.versions") version "0.51.0"
 }

@@ -163,6 +163,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 onSingleClick = {
                     textToSpeech.stop()
                     textToSpeech("You have tapped on $button")
+                    Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
@@ -172,11 +173,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     Handler().postDelayed({
                         redirectToOrder()
                     }, 2000) // Adjust delay time in miliseconds
-
+                    Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
                     textToSpeech.stop()
                     textToSpeech("Holding $button button.")
+                    Log.d("MainActivity", "Holding $button")
                 }
             )
         }
@@ -190,6 +192,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 onSingleClick = {
                     textToSpeech.stop()
                     textToSpeech("You have tapped on $button")
+                    Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
@@ -199,11 +202,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     Handler().postDelayed({
                     redirectToRecord()
                     }, 2000) // Adjust delay time in miliseconds
-
+                    Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
                     textToSpeech.stop()
                     textToSpeech("Holding $button button.")
+                    Log.d("MainActivity", "Holding $button")
                 }
             )
         }
@@ -217,6 +221,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 onSingleClick = {
                     textToSpeech.stop()
                     textToSpeech("You have tapped on $button")
+                    Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
@@ -226,10 +231,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     Handler().postDelayed({
                     redirectToStatistics()
                     }, 2000) // Adjust delay time in miliseconds
+                    Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
                     textToSpeech.stop()
                     textToSpeech("Holding $button button.")
+                    Log.d("MainActivity", "Holding $button")
                 }
             )
         }
@@ -346,6 +353,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Handler().postDelayed({
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         }, 525) // Adjust delay (300 milliseconds here) as per your preference
+        Log.d("MainActivity", "Text to Speech Button Triggered")
     }
 
     // Hold or Hover Listener event for text to speech
