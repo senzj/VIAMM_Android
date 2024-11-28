@@ -17,6 +17,7 @@
     </style>
 
     <style name="Theme.VIAMM" parent="Base.Theme.VIAMM" />
+
     <style name="Theme.VIAMM.NoAB" parent="Base.Theme.VIAMM.NoActionBar" />
 
     <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">

@@ -8,5 +8,6 @@
         <item>CANCELLED</item>
         <item>COMPLETED</item>
     </string-array>
+    <string name="title_activity_analytics">AnalyticsActivity</string>
 
 </resources>

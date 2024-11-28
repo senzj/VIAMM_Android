@@ -24,6 +24,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
         <activity
+            android:name=".AnalyticsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_analytics"
+            android:theme="@style/Theme.VIAMM" />
+        <activity
             android:name=".PaymentActivity"
             android:exported="true" />
         <activity
@@ -35,11 +40,10 @@
         <activity
             android:name=".EditOrderActivity"
             android:exported="true"
-            android:parentActivityName=".OrderActivity" />
-<!--        <activity-->
-<!--            android:name=".StatisticsActivity"-->
-<!--            android:exported="true"-->
-<!--            android:parentActivityName=".MainActivity" />-->
+            android:parentActivityName=".OrderActivity" /> <!-- <activity -->
+        <!-- android:name=".StatisticsActivity" -->
+        <!-- android:exported="true" -->
+        <!-- android:parentActivityName=".MainActivity" /> -->
         <activity
             android:name=".RecordActivity"
             android:exported="true"
