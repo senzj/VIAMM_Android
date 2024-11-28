@@ -3,11 +3,8 @@ package com.example.viamm
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
@@ -24,15 +21,22 @@ import com.example.viamm.databinding.ActivityOrderBinding
 import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.getOngoingOrder.OngoingOrder
 import com.example.viamm.models.getOngoingOrder.ServiceOrder
+import kotlinx.coroutines.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.w3c.dom.Text
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.Locale
+
+//unused imports
+//import org.w3c.dom.Text
+//import android.view.Menu
+//import android.view.MenuItem
+//import android.os.Handler
+
 
 class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, TextToSpeech.OnInitListener {
 
@@ -100,7 +104,6 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -117,7 +120,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         tvNoOngoingBookingh1 = binding.tvNoOngoingBookingh1!!
         tvNoOngoingBookingh2 = binding.tvNoOngoingBookingh2!!
 
-        // Preping for list data view
+        // Preparing for list data view
         ongoingOrderAdapter = OngoingOrderAdapter(orderList, this)
         binding.rvOrders.apply {
             adapter = ongoingOrderAdapter
@@ -126,7 +129,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
 
         textToSpeech = TextToSpeech(this, this)
 
-        setHoverListener(binding.btnBack,"Back to Dashboard")
+        "Back to Dashboard".setHoverListener(binding.btnBack)
         binding.btnBack.setOnClickListener {
             textToSpeech("Back to Dashboard")
             finish()
@@ -142,7 +145,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
     }
 
     // Item List View
-    // variable for clickings
+    // variable for clicking counts
     private var lastClickTime: Long = 0
     private val clickDelay: Long = 500 // Time window for detecting double-click in milliseconds
 
@@ -219,17 +222,30 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         loadingDialog.show()
 
         // Timer using Handler to delay code execution
-        Handler().postDelayed({
-            // This is the code that will run after the delay
-            // Put your code here that you want to execute after a delay
+//        Handler().postDelayed({
+//            // This is the code that will run after the delay
+//            // Put your code here that you want to execute after a delay
+//            Log.d("OrderActivity", "Proceeding to next step after TTS delay")
+//
+//            // starts the next activity
+//            startActivity(intent)
+//
+//            loadingDialog.dismiss()
+//
+//        }, 3000) // 2000 milliseconds = 2 seconds
+        CoroutineScope(Dispatchers.Main).launch {
+            // Delay for 3 seconds
+            delay(3000)
+
+            // Code to execute after the delay
             Log.d("OrderActivity", "Proceeding to next step after TTS delay")
 
-            // starts the next activity
+            // Start the next activity
             startActivity(intent)
 
+            // Dismiss the loading dialog
             loadingDialog.dismiss()
-
-        }, 3000) // 2000 milliseconds = 2 seconds
+        }
 
         Log.d("OrderActivity", "Double-click: Redirecting to Edit Booking for Booking ID: ${selectedOrder.orderId}")
     }
@@ -292,23 +308,23 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         }
     }
 
+    // Text to Speech function
     private fun textToSpeech(text: String) {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
         }
-        Handler().postDelayed({
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 500)
+        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        Log.d("OrderActivity", "Text to Speech Button Triggered")
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun setHoverListener(button: Button, text: String) {
+    private fun String.setHoverListener(button: Button) {
         button.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
                     if (!isClicked || !isSpeaking) {
                         isSpeaking = true
-                        textToSpeech(text)
+                        textToSpeech(this)
                     }
                 }
                 MotionEvent.ACTION_UP -> {

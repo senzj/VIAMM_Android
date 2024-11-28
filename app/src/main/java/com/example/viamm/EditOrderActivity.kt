@@ -1,22 +1,19 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.viamm
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
-import android.os.Parcel
-import android.os.Parcelable
 import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
@@ -38,7 +35,13 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
-@Suppress("DEPRECATION")
+//unused imports
+//import android.view.Menu
+//import android.view.MenuItem
+//import android.os.Parcel
+//import android.os.Parcelable
+//import android.content.DialogInterface
+
 class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityEditOrderBinding
@@ -66,12 +69,6 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Set up the toolbar
         setSupportActionBar(binding.toolbar)
 
-        //toolbar back button
-//        supportActionBar?.apply {
-//            setDisplayHomeAsUpEnabled(true)
-//            setDisplayShowHomeEnabled(true)
-//        }
-
         // Initialize the Retrofit API client
         api = RetrofitClient.instance
 
@@ -87,7 +84,16 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         orderStatus = intent.getStringExtra("BOOKING_STATUS")
 
         // Retrieve list of services (ParcelableArrayList)
-        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
+        // Check the current Android version to handle the retrieval based on API level
+        val services: ArrayList<ServiceOrder>? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // For Android 13 (API level 33) and above, use getParcelableArrayListExtra with type argument
+            intent.getParcelableArrayListExtra("SERVICES")
+        } else {
+            // For older Android versions, use getParcelableArrayListExtra without the type argument
+            intent.getParcelableArrayListExtra("SERVICES")
+        }
+
+
 
         // Total Cost
         totalCost = intent.getIntExtra("BOOKING_COST", 0)
@@ -208,7 +214,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // Constants for double-click timing
-        val DOUBLE_CLICK_TIME_DELTA =400L // 300 milliseconds
+        val doubleClick =400L // 300 milliseconds
 
         // Track the last click time
         var lastClickTime: Long = 0
@@ -219,7 +225,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d("EditOrderActivity", "Cancel Order Button Clicked. Time: $clickTime")
 
             // if the user double clicked the button, cancel the order.
-            if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
+            if (clickTime - lastClickTime < doubleClick) {
                 // Double-click detected, proceed with cancellation
                 val updatedStatus = "CANCELLED"
 
@@ -352,7 +358,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         builder.create().show()
     }
 
-    fun Int.dpToPx(): Int {
+    private fun Int.dpToPx(): Int {
         val density = resources.displayMetrics.density
         return (this * density).toInt()
     }

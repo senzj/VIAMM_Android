@@ -3,11 +3,8 @@ package com.example.viamm
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
@@ -24,6 +21,7 @@ import com.example.viamm.databinding.ActivityRecordBinding
 import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.models.Order.Orders
 import com.example.viamm.models.Order.ServiceRecord
+import kotlinx.coroutines.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -33,13 +31,18 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.util.Locale
 
-@Suppress("DEPRECATION")
+//unused imports
+//import android.view.Menu
+//import android.view.MenuItem
+//import android.os.Handler
+
+
 class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityRecordBinding
     private lateinit var orderAdapter: CompletedOrderAdapter
     private var orderList: List<Orders> = emptyList()
-    private val EDIT_ORDER_REQUEST_CODE = 100
+    private val editOrderRequest = 100
     private lateinit var loadingDialog: LoadingDialog
     private lateinit var tvNoRecordBookingh1: TextView
     private lateinit var tvNoRecordBookingh2: TextView
@@ -95,7 +98,6 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -105,6 +107,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
 
         // Initialize toolbar
         setSupportActionBar(binding.toolbar)
+
         ////toolbar back button
 //        supportActionBar?.apply {
 //            setDisplayHomeAsUpEnabled(true)
@@ -128,7 +131,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
             layoutManager = LinearLayoutManager(this@RecordActivity)
         }
 
-        setHoverListener(binding.btnBack,"Back to Dashboard")
+        "Back to Dashboard".setHoverListener(binding.btnBack)
         binding.btnBack.setOnClickListener {
             textToSpeech("Back to Dashboard")
             finish()
@@ -143,7 +146,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
     }
 
     // Item List View
-    // variable for clickings
+    // variable for clicking
     private var lastClickTime: Long = 0
     private val clickDelay: Long = 2000 // Time window for detecting double-click in milliseconds
 
@@ -207,50 +210,23 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         loadingDialog.show()
 
         // Timer using Handler to delay code execution
-        Handler().postDelayed({
-            // This is the code that will run after the delay
-            // Put your code here that you want to execute after a delay
+        // Use Coroutine to handle delay and start the activity after the delay
+        CoroutineScope(Dispatchers.Main).launch {
+            // Delay for 4 seconds
+            delay(4000) // 4000 milliseconds = 4 seconds delay
+
+            // Log to indicate we are proceeding after the delay
             Log.d("RecordActivity", "Proceeding to next step after TTS delay")
 
-            // starts the next activity
+            // Start the next activity
             startActivity(intent)
 
+            // Dismiss loading dialog
             loadingDialog.dismiss()
-
-        }, 4000) // 2000 milliseconds = 2 seconds
+        }
 
         Log.d("RecordActivity", "Double-click: Redirecting to Edit Record for Booking ID: ${selectedOrder.orderId}")
     }
-
-
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        menuInflater.inflate(R.menu.toolbar_menu, menu)
-//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
-//        menu?.findItem(R.id.btn_logout)?.isVisible = false
-//        return true
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            //toolbar back button function
-//            android.R.id.home -> {
-//                finish()
-//                true
-//            }
-//
-//            R.id.btn_scanner -> {
-//                textToSpeech("Money Scanner")
-//                redirectToScanner()
-//                true
-//            }
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
-
-//    private fun redirectToScanner() {
-//        val intent = Intent(applicationContext, ScannerActivity::class.java)
-//        startActivity(intent)
-//    }
 
     override fun onResume() {
         super.onResume()
@@ -261,7 +237,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
     @Deprecated("This method has been deprecated in favor of using the Activity Result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == EDIT_ORDER_REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == editOrderRequest && resultCode == RESULT_OK) {
             val updatedStatus = data?.getStringExtra("UPDATED_STATUS")
             if (updatedStatus != null) {
                 fetchData()
@@ -281,23 +257,30 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
         }
     }
 
+    // Text to Speech function
     private fun textToSpeech(text: String) {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
         }
-        Handler().postDelayed({
+
+        CoroutineScope(Dispatchers.Main).launch {
+            // Delay timer
+            delay(530)
+
+            // Code to execute after the delay
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 500)
+            Log.d("LoginActivity", "Proceeding to next step after TTS delay")
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun setHoverListener(button: Button, text: String) {
+    private fun String.setHoverListener(button: Button) {
         button.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
                     if (!isClicked || !isSpeaking) {
                         isSpeaking = true
-                        textToSpeech(text)
+                        textToSpeech(this)
                     }
                 }
                 MotionEvent.ACTION_UP -> {

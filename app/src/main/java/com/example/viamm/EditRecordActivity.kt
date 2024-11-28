@@ -1,27 +1,22 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.viamm
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Parcel
-import android.os.Parcelable
 import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.viamm.api.Api
@@ -30,6 +25,19 @@ import com.example.viamm.databinding.ActivityEditRecordBinding
 import com.example.viamm.models.Order.ServiceRecord
 import retrofit2.Response
 import java.util.Locale
+import androidx.activity.enableEdgeToEdge
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+//unused imports
+//import android.view.Menu
+//import android.view.MenuItem
+//import android.os.Parcel
+//import android.os.Parcelable
+//import android.content.Intent
+//import android.os.Handler
 
 class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -40,10 +48,11 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isClicked = false
     private var isSpeaking = false
 
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
+        enableEdgeToEdge()
 
         binding = ActivityEditRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -170,7 +179,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             })
         }
         // Set hover listener for back button
-        setHoverListener(binding.btnRecordBack, "Back")
+        "Back".setHoverListener(binding.btnRecordBack)
 
         binding.btnRecordBack.setOnClickListener {
             textToSpeech("Back to Records")
@@ -179,7 +188,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // Extension function to convert dp to pixels
-    fun Int.dpToPx(): Int {
+    private fun Int.dpToPx(): Int {
         val density = resources.displayMetrics.density
         return (this * density).toInt()
     }
@@ -232,14 +241,20 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
         }
-        Handler().postDelayed({
+
+        CoroutineScope(Dispatchers.Main).launch {
+            // Delay timer
+            delay(530)
+
+            // Code to execute after the delay
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+            Log.d("LoginActivity", "Proceeding to next step after TTS delay")
+        }
     }
 
     // Hold or Hover Listener event for text to speech
     @SuppressLint("ClickableViewAccessibility")
-    private fun setHoverListener(button: Button, text: String) {
+    private fun String.setHoverListener(button: Button) {
         button.setOnTouchListener { _, event ->
             when (event.action) {
 
@@ -248,7 +263,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
                         Log.d("Edit Record Activity", "Text to Speech Button Pressed")
-                        textToSpeech(text)
+                        textToSpeech(this)
                         Log.d("Edit Record Activity", "Text to Speech Button Triggered")
                     }
                 }

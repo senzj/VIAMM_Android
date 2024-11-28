@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.MotionEvent
@@ -16,6 +15,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import kotlinx.coroutines.*
+import androidx.lifecycle.*
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.models.Login.LoginResponse
 import com.example.viamm.storage.SharedData
@@ -28,13 +29,16 @@ import java.io.IOException
 import java.net.UnknownHostException
 import java.util.Locale
 
+
+//unused imports
+//import android.os.Handler
+
 class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var loginBtn: Button
-    private lateinit var CompName: TextInputEditText
-    private lateinit var CompPass: TextInputEditText
+    private lateinit var compName: TextInputEditText
+    private lateinit var compPass: TextInputEditText
     private lateinit var loadingDialog: LoginLoading
-
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
     private var isSpeaking = false
@@ -53,22 +57,22 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         loadingDialog = LoginLoading(this)
 
         loginBtn = findViewById(R.id.btn_login)
-        CompName = findViewById(R.id.input_username)
-        CompPass = findViewById(R.id.input_password)
+        compName = findViewById(R.id.input_username)
+        compPass = findViewById(R.id.input_password)
 
         // Set up focus change listeners for both EditText
         // This makes that when the user taps outside the EditText, the keyboard disappears
-        setupFocusChangeListener(CompName)
-        setupFocusChangeListener(CompPass)
+        setupFocusChangeListener(compName)
+        setupFocusChangeListener(compPass)
 
         // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
 
-        setHoverListener(loginBtn,"Login")
+        "Login".setHoverListener(loginBtn)
 
         loginBtn.setOnClickListener {
-            val username = CompName.text.toString().trim()
-            val password = CompPass.text.toString().trim()
+            val username = compName.text.toString().trim()
+            val password = compPass.text.toString().trim()
 
             if (username.isNotEmpty()) {
                 textToSpeech("Logging in as, $username")
@@ -79,13 +83,13 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // Check if username or password is empty
             if (username.isEmpty()) {
-                CompName.error = "Please enter your username"
-                CompName.requestFocus()
+                compName.error = "Please enter your username"
+                compName.requestFocus()
                 return@setOnClickListener
             }
             if (password.isEmpty()) {
-                CompPass.error = "Please enter your password"
-                CompPass.requestFocus()
+                compPass.error = "Please enter your password"
+                compPass.requestFocus()
                 return@setOnClickListener
             }
 
@@ -123,15 +127,15 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
 
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-
-                        // Introduce a delay of 2 seconds before proceeding
-                        Handler().postDelayed({
+                        // Use lifecycleScope to launch a coroutine for handling delays
+                        lifecycleScope.launch {
+                            // Introduce a delay of 2 seconds before proceeding
+                            delay(2000)  // 2 seconds delay
 
                             // Dismiss loading dialog on response
                             loadingDialog.dismiss()
 
                             if (response.isSuccessful) {
-
                                 // Handle successful response
                                 response.body()?.let { loginResponse ->
                                     if (!loginResponse.error) {
@@ -147,11 +151,12 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                         val savedUsername = sharedPref.getString("session_user", "VIAMM")
                                         Log.d("LoginActivity", "Saved username: $savedUsername")  // Check if the value is being saved
 
-                                        // add a delay of 2 for texttospeech
-                                        Handler().postDelayed({
-                                            Log.d("LoginActivity", "Welcome to VIAMM, $username")
-                                            textToSpeech("Login Success! Welcome to Vaiyam, $username")
-                                        }, 1000) // delay for 1 seconds
+                                        // Add a delay of 1 second for TextToSpeech
+                                        delay(1000)  // Delay for 1 second
+
+                                        // Perform TextToSpeech
+                                        Log.d("LoginActivity", "Welcome to VIAMM, $username")
+                                        textToSpeech("Login Success! Welcome to Vaiyam, $username")
 
                                         // Navigate to MainActivity
                                         val intent = Intent(applicationContext, MainActivity::class.java)
@@ -191,14 +196,13 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                     }
                                 }
                             }
-                        }, 3000) // 3000 milliseconds = 3 seconds delay for LOGIN
+                        }
                     }
-
                 })
         }
 
         // Handle the Done action on the password input
-        CompPass.setOnEditorActionListener { _, actionId, _ ->
+        compPass.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
                 loginBtn.performClick() // Simulate clicking the login button
                 true
@@ -232,10 +236,28 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // Initialize TextToSpeech on Init
+    override fun onInit(status: Int) {
+        // setting up for tts
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("LoginActivity", "TextToSpeech language is not supported on this device.")
+            }
+        } else {
+            Log.e("LoginActivity", "TextToSpeech initialization failed")
+        }
+    }
+
     //  When the focus changes or clicked anywhere, hide the keyboard
     private fun setupFocusChangeListener(view: View) {
         view.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             if (!hasFocus) {
+                currentFocus?.let { view ->
+                    view.clearFocus()
+                    hideKeyboard(view)
+                }
+            } else {
                 hideKeyboard(v)
             }
         }
@@ -249,7 +271,7 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Hold or Hover Listener event
     @SuppressLint("ClickableViewAccessibility")
-    private fun setHoverListener(button: Button, text: String) {
+    private fun String.setHoverListener(button: Button) {
         button.setOnTouchListener { _, event ->
             when (event.action) {
 
@@ -258,7 +280,7 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
                         Log.d("LoginActivity", "Text to Speech Button Pressed")
-                        textToSpeech(text)
+                        textToSpeech(this)
                         Log.d("LoginActivity", "Text to Speech Button Triggered")
                     }
                 }
@@ -283,10 +305,17 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun textToSpeech(text: String) {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
+            return
         }
-        Handler().postDelayed({
+
+        CoroutineScope(Dispatchers.Main).launch {
+            // Delay timer
+            delay(530)
+
+            // Code to execute after the delay
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+            Log.d("LoginActivity", "Proceeding to next step after TTS delay")
+        }
     }
 
     // Function to save user data (e.g., session token, username)
@@ -295,18 +324,6 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         with(sharedPref.edit()) {
             putString(key, value)
             apply()
-        }
-    }
-
-    // Initialize TextToSpeech
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = textToSpeech.setLanguage(Locale.US)
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
         }
     }
 

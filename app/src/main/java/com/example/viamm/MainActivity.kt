@@ -4,28 +4,37 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.ConstraintSet.Motion
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.viamm.databinding.ActivityMainBinding
 import com.example.viamm.storage.SharedData
 import java.util.Locale
+import kotlinx.coroutines.*
+
+//unused imports
+//import android.os.Handler
+//import android.os.Looper
+//import androidx.constraintlayout.widget.ConstraintSet.Motion
+//import androidx.annotation.RequiresApi
+
 
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -36,16 +45,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isClicked = false
     private var isSpeaking = false
 
-    @SuppressLint("ClickableViewAccessibility")
+
+
+    @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Make the activity fullscreen and draw behind the status bar
-        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-
         // Get permissions
         getPermission()
+
+        // Make the activity fullscreen and draw behind the status bar
+        // Set the content view first, then configure window insets for fullscreen mode
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 (API 30) and above: Use the WindowInsetsController API
+            val windowInsetsController = window.insetsController
+            windowInsetsController?.hide(WindowInsets.Type.statusBars())
+            windowInsetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
+        } else {
+            // Android 10 (API 29) and below: Use the old method
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        }
+
+
 
         // Initialize the binding
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -84,7 +109,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.d("MainActivity", "Session user: : $username")
 
         // Update the TextView with a personalized welcome message
-        welcomeTextView?.text = "Welcome to Viamm, $username!"
+        welcomeTextView?.text = "Welcome to VIAMM, $username!"
 
 
         // Variable declaration for button click timing
@@ -110,13 +135,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     isHolding = false
 
                     // Start a delayed handler to detect a hold action
-                    Handler(Looper.getMainLooper()).postDelayed({
+                    lifecycleScope.launch {
+                        delay(holdDuration) // Time to wait before considering it a hold
                         if (!isDoubleClick && !isHolding && event.action != MotionEvent.ACTION_UP) {
                             // If not a double-click and the button remains pressed, mark as holding
                             isHolding = true
                             onHold() // Trigger the hold callback
                         }
-                    }, holdDuration) // Time to wait before considering it a hold
+                    }
                     return true // Indicate that the ACTION_DOWN event is handled
                 }
 
@@ -137,12 +163,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             isDoubleClick = false
                             lastClickTime = currentTime
 
-                            // Delay the single-click execution to ensure it is not a double-click
-                            Handler(Looper.getMainLooper()).postDelayed({
+                            lifecycleScope.launch {
+                                delay(clickDelay) // Wait for double-click detection before firing single click
                                 if (!isDoubleClick) {
                                     onSingleClick() // Trigger the single-click callback
                                 }
-                            }, clickDelay) // Wait for double-click detection before firing single click
+                            }
                         }
                     }
 
@@ -170,9 +196,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textToSpeech("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
-                    Handler().postDelayed({
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // Delay for 3 seconds
+                        delay(2000)
+
+                        // Code to execute after the delay
+                        Log.d("MainActivity", "Proceeding to next step after TTS delay")
+
+                        // Start the next activity
                         redirectToOrder()
-                    }, 2000) // Adjust delay time in miliseconds
+                    }
                     Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
@@ -199,9 +232,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textToSpeech("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
-                    Handler().postDelayed({
-                    redirectToRecord()
-                    }, 2000) // Adjust delay time in miliseconds
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // Delay for 3 seconds
+                        delay(2000)
+
+                        // Code to execute after the delay
+                        Log.d("MainActivity", "Proceeding to next step after TTS delay")
+
+                        // Start the next activity
+                        redirectToRecord()
+                    }
                     Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
@@ -228,9 +268,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textToSpeech("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
-                    Handler().postDelayed({
-                    redirectToStatistics()
-                    }, 2000) // Adjust delay time in miliseconds
+                    // add a delay to redirecting to finish the tts
+                    CoroutineScope(Dispatchers.Main).launch {
+                        // Delay for 3 seconds
+                        delay(2000)
+
+                        // Code to execute after the delay
+                        Log.d("MainActivity", "Proceeding to next step after TTS delay")
+
+                        // Start the next activity
+                         redirectToAnalytics()
+                    }
                     Log.d("MainActivity", "Double Tapped $button")
                 },
                 onHold = {
@@ -243,7 +291,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     }
 
-    //  Override functions=============================================================
+//  Override functions
     // Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
@@ -266,44 +314,42 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Action bar item selected
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-
             // item menu hover text is impossible cuz there is no hover event
             R.id.btn_logout -> {
                 textToSpeech("Logging out")
 
                 // add a delay to redirecting to finish the tts
-                Handler().postDelayed({
+                lifecycleScope.launch {
+                    delay(1000) // Adjust delay time in milliseconds
                     logout()
-                }, 1000) // Adjust delay time in miliseconds
+                }
                 true
             }
-
 //            R.id.btn_scanner -> {
 //                textToSpeech("Money Scanner")
 //                redirectToScanner()
 //                true
 //            }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    // Other Functions =================================================================================
 
-    // Redirect to order activity
+// Redirecting to other activity
+    // Order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
         startActivity(intent)
     }
 
-    // Redirect to records activity
+    // Records activity
     private fun redirectToRecord() {
         val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
     }
 
-    // Redirect to statistics activity
-    private fun redirectToStatistics() {
+    // Analytics activity
+    private fun redirectToAnalytics() {
 //        val intent = Intent(applicationContext, StatisticsActivity::class.java)
 //        startActivity(intent)
     }
@@ -314,7 +360,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 //        startActivity(intent)
 //    }
 
-    // Setting permissions for the camera
+
+// Setting permissions for the camera
     private fun getPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
@@ -333,7 +380,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // Initialize TextToSpeech
+
+// Initialize TextToSpeech
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = textToSpeech.setLanguage(Locale.US)
@@ -350,13 +398,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
         }
-        Handler().postDelayed({
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        }, 525) // Adjust delay (300 milliseconds here) as per your preference
+        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         Log.d("MainActivity", "Text to Speech Button Triggered")
     }
 
-    // Hold or Hover Listener event for text to speech
+
+// Hold or Hover Listener event for text to speech
     @SuppressLint("ClickableViewAccessibility")
     private fun setHoverListener(button: Button, text: String) {
         button.setOnTouchListener { _, event ->
@@ -389,18 +436,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
 //  Exit app functions
-
-    // Function to handle logout
+    // Logout
     private fun logout() {
-
         // Set the user as logged out
         SharedData.getInstance(this).isLoggedIn = false
 
         // Clear session data from SharedPreferences
-        session_destroy()
+        sessionDestroy()
 
-        // Delay the redirection to allow TTS to finish
-        Handler(Looper.getMainLooper()).postDelayed({
+        lifecycleScope.launch {
+            // Delay for 1 second
+            delay(1000)
+
             // Redirect to LoginActivity
             val intent = Intent(applicationContext, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -413,17 +460,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textToSpeech.stop()
 
             // Show logout success message
-            Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show()
-        }, 1000) // 1-second delay to allow TTS to finish
+            Toast.makeText(this@MainActivity, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroy() {
-        session_destroy() // Destroying or clearing saved user info
+        sessionDestroy() // Destroying or clearing saved user info
         super.onDestroy() // Call the super method first
         textToSpeech.stop()
     }
 
-    private fun session_destroy(){
+    private fun sessionDestroy(){
         // Get the SharedPreferences instance where user data is saved
         val sharedPref = getSharedPreferences("session", Context.MODE_PRIVATE)
 
@@ -433,9 +480,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             remove("isLoggedIn")    // Remove the login status key if saved
             clear()  // This clears all keys and values
             apply()  // Don't forget to apply changes
-            Log.d("MainActivity", "User Session cleared2.")
+            Log.d("MainActivity", "User Session cleared.")
         }
     }
 
-    // End of MainActivity ==========================================================================
+// End of MainActivity
 }
