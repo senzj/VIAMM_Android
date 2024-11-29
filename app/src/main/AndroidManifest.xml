@@ -40,10 +40,7 @@
         <activity
             android:name=".EditOrderActivity"
             android:exported="true"
-            android:parentActivityName=".OrderActivity" /> <!-- <activity -->
-        <!-- android:name=".StatisticsActivity" -->
-        <!-- android:exported="true" -->
-        <!-- android:parentActivityName=".MainActivity" /> -->
+            android:parentActivityName=".OrderActivity" />
         <activity
             android:name=".RecordActivity"
             android:exported="true"

@@ -354,13 +354,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 //        startActivity(intent)
     }
 
-    // Function to go Scanner Activity
-//    private fun redirectToScanner() {
-//        val intent = Intent(applicationContext, ScannerActivity::class.java)
-//        startActivity(intent)
-//    }
-
-
 // Setting permissions for the camera
     private fun getPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -387,6 +380,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val result = textToSpeech.setLanguage(Locale.US)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+                Log.e("MainActivity", "TextToSpeech language is not supported on this device.")
             }
         } else {
             Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()

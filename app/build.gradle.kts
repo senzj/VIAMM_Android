@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.viamm"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.viamm"
@@ -119,5 +119,18 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-
+    //VicoCharts
+    // Version
+    val vicoVersion = "2.0.0-beta.3"
+    // For Jetpack Compose.
+    implementation("com.patrykandpatrick.vico:compose:$vicoVersion")
+    // For Material 2 theming in Jetpack Compose.
+    implementation("com.patrykandpatrick.vico:compose-m2:$vicoVersion")
+    // For Material 3 theming in Jetpack Compose.
+    implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
+    /* Houses the core logic. This is included in all other modules, so add it explicitly
+    only in the unlikely event that you don’t need anything else. */
+    implementation("com.patrykandpatrick.vico:core:$vicoVersion")
+    // For the view system.
+    implementation("com.patrykandpatrick.vico:views:$vicoVersion")
 }
