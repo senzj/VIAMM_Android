@@ -65,6 +65,47 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupFocusChangeListener(compName) // Hide keyboard when tapping outside this field
         setupFocusChangeListener(compPass) // Hide keyboard when tapping outside this field
 
+        // Keeps the keyboard open when the next button(next arrow) in keyboard is clicked
+        compName.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                // Moves focus to the password field
+                compPass.requestFocus()
+
+                // shifts the keyboard up on the password input field
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                // Show the keyboard again
+                imm.showSoftInput(compPass, InputMethodManager.SHOW_IMPLICIT)
+
+                // Indicate that the event was handled
+                true
+            } else {
+                // Allow default behavior for other actions
+                false
+            }
+        }
+
+        // Closes keyboard when the "Done" button (check) is pressed in keyboard
+        compPass.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                // If the "Done" kb button is pressed, trigger the loginBtn
+                loginBtn.performClick()
+
+                // Indicate that the event was handled
+                true
+            } else {
+                // If not clicked then keep focus on the password field
+                compPass.requestFocus()
+
+                // Show the keyboard again
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                // Ensure the keyboard stays open
+                imm.showSoftInput(compPass, InputMethodManager.SHOW_IMPLICIT)
+
+                // Allow default behavior for other actions
+                false
+            }
+        }
+
         // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
 
@@ -117,26 +158,6 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 })
         }
 
-        // Keeps the keyboard open when the next button(next arrow) in keyboard is clicked
-        compName.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                compPass.requestFocus()
-                true
-            } else {
-                false
-            }
-        }
-
-        // Closes keyboard when the "Done" button (check) is pressed in keyboard
-        compPass.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                loginBtn.performClick() // Simulate clicking the login button
-                true // Indicate that the event was handled
-            } else {
-                false // Allow default behavior for other actions
-            }
-        }
-
         findViewById<View>(R.id.login).setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 currentFocus?.let { view ->
@@ -165,14 +186,52 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // check if text to speech is initialized
-    private fun speakText(text: String) {
+    @Suppress("DEPRECATION")
+    private fun speakText(text: String, username: String? = null, loginResponse: LoginResponse? = null) {
         if (isTTSInitialized) {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+            val utteranceId = System.currentTimeMillis().toString()  // Unique ID for this utterance
+            val params = Bundle()
+            params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
+
+            // Set an OnUtteranceCompletedListener to trigger the next activity once the speech finishes
+            textToSpeech.setOnUtteranceCompletedListener { completedUtteranceId ->
+                if (completedUtteranceId == utteranceId) {
+                    // If both username and loginResponse are provided, proceed to next activity
+                    if (username != null && loginResponse != null) {
+                        proceedToNextActivity(username, loginResponse)
+                    }
+                }
+            }
+
+            // Speak the text
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
             Log.d("LoginActivity", "TTS triggered.\ntext: $text")
         } else {
             Log.e("LoginActivity", "TextToSpeech not initialized or supported")
         }
     }
+
+
+    // proceeds to next activity if login is successful
+    private fun proceedToNextActivity(username: String, loginResponse: LoginResponse) {
+        // Save user data to SharedPreferences
+        SharedData.getInstance(this@LoginActivity).saveUser(loginResponse.user)
+        SharedData.getInstance(this@LoginActivity).isLoggedIn = true
+
+        // Saving user data in session
+        saveUserData(applicationContext, "session_user", username)
+
+        Log.d("LoginActivity", "Login Success!")
+
+        // Start the next activity
+        val intent = Intent(applicationContext, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+
+        // Dismiss the loading dialog after starting the next activity
+        loadingDialog.dismiss()
+    }
+
 
     // System errors or failures
     private fun handleNetworkFailure(t: Throwable) {
@@ -199,21 +258,22 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (response.isSuccessful) {
                 response.body()?.let { loginResponse ->
+
+                    loadingDialog.show()
+
                     if (!loginResponse.error) {
                         // Save user data to SharedPreferences
                         SharedData.getInstance(this@LoginActivity).saveUser(loginResponse.user)
                         SharedData.getInstance(this@LoginActivity).isLoggedIn = true
 
-                        // saving user data in session
+                        // Saving user data in session
                         saveUserData(applicationContext, "session_user", username)
-                        speakText("Login Success! Welcome to Vaiyam, $username")
+
+                        // Trigger text-to-speech for login success, passing username and loginResponse
+                        speakText("Login Success! Welcome to Vaiyam, $username", username, loginResponse)
 
                         Log.d("LoginActivity", "Login Success!")
 
-                        // next activity
-                        val intent = Intent(applicationContext, MainActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
                     } else {
                         Toast.makeText(this@LoginActivity, loginResponse.message, Toast.LENGTH_LONG).show()
                         Log.e("LoginActivity", loginResponse.message)
