@@ -48,6 +48,16 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         enableEdgeToEdge()
         setContentView(R.layout.activity_login)
 
+        // Check if the user is already logged in
+        if (checkIfLoggedIn()) {
+            // didnt user redirectToMainActivity because it crashes due to loading dismiss
+            // Redirect to MainActivity if the user is logged in
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+            return // Exit onCreate early
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.login)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -153,6 +163,8 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     // Triggered when the server sends a response (successful or error)
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                        Log.v("LoginActivity", "Login Response: $response")
+                        Log.v("LoginActivity", "User creds:\n$username\n$password")
                         handleLoginResponse(response, username)
                     }
                 })
@@ -168,6 +180,16 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             v.performClick()
             false
         }
+    }
+
+    // check if user is logged in or not
+    private fun checkIfLoggedIn(): Boolean {
+        val sharedPref = getSharedPreferences("session", Context.MODE_PRIVATE)
+        val username = sharedPref.getString("session_user", null)
+        Log.d("LoginActivity", "Retrieved session username: $username")
+
+        // if user session is not empty or null then return true
+        return !username.isNullOrEmpty()
     }
 
     override fun onInit(status: Int) {
@@ -195,10 +217,12 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // Set an OnUtteranceCompletedListener to trigger the next activity once the speech finishes
             textToSpeech.setOnUtteranceCompletedListener { completedUtteranceId ->
+                // if the completed utterance ID matches the current utterance ID
                 if (completedUtteranceId == utteranceId) {
-                    // If both username and loginResponse are provided, proceed to next activity
+                    // If both username and loginResponse are passed from handleLoginResponse
                     if (username != null && loginResponse != null) {
-                        proceedToNextActivity(username, loginResponse)
+                        savingInfo(username, loginResponse)
+                        Log.d("LoginActivity", "Proceed to MainActivity.")
                     }
                 }
             }
@@ -211,18 +235,24 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-
     // proceeds to next activity if login is successful
-    private fun proceedToNextActivity(username: String, loginResponse: LoginResponse) {
+    private fun savingInfo(username: String, loginResponse: LoginResponse) {
         // Save user data to SharedPreferences
         SharedData.getInstance(this@LoginActivity).saveUser(loginResponse.user)
         SharedData.getInstance(this@LoginActivity).isLoggedIn = true
 
         // Saving user data in session
+        Log.v("LoginActivity", "User cred:\n$username\n")
         saveUserData(applicationContext, "session_user", username)
 
         Log.d("LoginActivity", "Login Success!")
 
+        // Start the next activity
+        redirectToMainActivity()
+
+    }
+
+    private fun redirectToMainActivity(){
         // Start the next activity
         val intent = Intent(applicationContext, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -230,8 +260,12 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Dismiss the loading dialog after starting the next activity
         loadingDialog.dismiss()
-    }
 
+        Log.d("LoginActivity", "Redirecting to MainActivity")
+
+        // Finish the current activity to prevent memory leak
+        finish()
+    }
 
     // System errors or failures
     private fun handleNetworkFailure(t: Throwable) {
@@ -269,9 +303,8 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         // Saving user data in session
                         saveUserData(applicationContext, "session_user", username)
 
-                        // Trigger text-to-speech for login success, passing username and loginResponse
+                        // Trigger text-to-speech for login success, while passing username and loginResponse for proceedToNextActivity function
                         speakText("Login Success! Welcome to Vaiyam, $username", username, loginResponse)
-
                         Log.d("LoginActivity", "Login Success!")
 
                     } else {
@@ -322,6 +355,7 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d("LoginActivity", "TextToSpeech shutdown")
         }
         super.onDestroy()
+        finish()
         Log.d("LoginActivity", "Activity destroyed")
     }
 
@@ -330,8 +364,10 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val sharedPref = context.getSharedPreferences("session", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
             putString(key, value)
-            apply()
+            commit() // Use commit() instead of apply() to confirm synchronous saving
         }
+        Log.d("SharedPreferences", "User data saved: $key = $value")
     }
+
 }
 

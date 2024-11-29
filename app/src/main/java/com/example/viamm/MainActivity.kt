@@ -18,6 +18,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isSpeaking = false
 
 
-
+    @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,9 +71,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
 
-
-
-        // Initialize the binding
+        // Initialize the activity screen binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -89,28 +88,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize buttons
         val orderBtn: Button = binding.btnOrder
         val recordBtn: Button = binding.btnRecord
-        val statisticsBtn: Button = binding.btnStatistics
+        val analyticsBtn: Button = binding.btnStatistics
 
+        // Initialize textViews
+        val welcomeTextView: TextView? = binding.tvWelcome
 
         // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
 
-
-
-        // Initialize user welcome TextView
-        val welcomeTextView: TextView? = binding.tvWelcome
-
         // Fetch the session_user username from SharedPreferences
-        val sharedPref = getSharedPreferences("session", Context.MODE_PRIVATE)  // Ensure you're using "user_session"
-        Log.d("MainActivity", "Session user: : $sharedPref")
+        val sharedPref = getSharedPreferences("session", Context.MODE_PRIVATE)
+        val username = sharedPref.getString("session_user", null) // No default value here
+        Log.d("MainActivity", "Retrieved username: $username")
 
-        // Default to "VIAMM" if no username is found
-        val username = sharedPref.getString("session_user", "VIAMM") // Use "session_user" key to fetch
-        Log.d("MainActivity", "Session user: : $username")
+        if (username.isNullOrEmpty()) {
+            Log.d("MainActivity", "No user session found. Redirecting to login.")
+            redirectToLogin()
+            finish()
+        } else {
+            Log.d("MainActivity", "Welcome back, $username!")
+        }
 
         // Update the TextView with a personalized welcome message
         welcomeTextView?.text = "Welcome to VIAMM, $username!"
-
 
         // Variable declaration for button click timing
         val holdDuration = 350L // Duration in milliseconds to consider as a hold
@@ -188,12 +188,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Booking",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You have tapped on $button")
+                    speakText("You have tapped on $button")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You've selected $button. Redirecting now to $button.")
+                    speakText("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     CoroutineScope(Dispatchers.Main).launch {
@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding $button button.")
+                    speakText("Holding $button button.")
                     Log.d("MainActivity", "Holding $button")
                 }
             )
@@ -224,12 +224,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Record",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You have tapped on $button")
+                    speakText("You have tapped on $button")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You've selected $button. Redirecting now to $button.")
+                    speakText("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     CoroutineScope(Dispatchers.Main).launch {
@@ -246,13 +246,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding $button button.")
+                    speakText("Holding $button button.")
                     Log.d("MainActivity", "Holding $button")
                 }
             )
         }
 
-        statisticsBtn.setOnTouchListener { _, event ->
+        analyticsBtn.setOnTouchListener { _, event ->
             val button = "Analytics"
 
             handleTouchEvent(
@@ -260,12 +260,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Analytics",
                 onSingleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You have tapped on $button")
+                    speakText("You have tapped on $button")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    textToSpeech("You've selected $button. Redirecting now to $button.")
+                    speakText("You've selected $button. Redirecting now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     // add a delay to redirecting to finish the tts
@@ -283,7 +283,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 },
                 onHold = {
                     textToSpeech.stop()
-                    textToSpeech("Holding $button button.")
+                    speakText("Holding $button button.")
                     Log.d("MainActivity", "Holding $button")
                 }
             )
@@ -292,31 +292,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
 //  Override functions
-    // Function lifecycle to check if user is logged in
     override fun onStart() {
         super.onStart()
 
+        // Check if user is or not logged in
         if (!SharedData.getInstance(this).isLoggedIn) {
             val intent = Intent(applicationContext, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish() // Finish the current activity
         }
+
     }
 
-    // Action bar/menu
+    // Creating options menu items for toolbar (action bar)
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         menu?.findItem(R.id.btn_scanner)?.isVisible = false
         return true
     }
 
-    // Action bar item selected
+    // Action bar item list
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             // item menu hover text is impossible cuz there is no hover event
             R.id.btn_logout -> {
-                textToSpeech("Logging out")
+                speakText("Logging out")
 
                 // add a delay to redirecting to finish the tts
                 lifecycleScope.launch {
@@ -334,25 +335,53 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // Pause the current activity
+    override fun onPause() {
+        super.onPause()
+
+        // Add custom logic here if needed, e.g., save state, stop animations, etc.
+        Log.d("MainActivity", "MainActivity is paused.")
+    }
+
 
 // Redirecting to other activity
     // Order activity
     private fun redirectToOrder() {
         val intent = Intent(applicationContext, OrderActivity::class.java)
         startActivity(intent)
+        onPause()
     }
 
     // Records activity
     private fun redirectToRecord() {
         val intent = Intent(applicationContext, RecordActivity::class.java)
         startActivity(intent)
+        onPause()
     }
 
     // Analytics activity
     private fun redirectToAnalytics() {
 //        val intent = Intent(applicationContext, StatisticsActivity::class.java)
 //        startActivity(intent)
+        onPause()
     }
+
+    // Login Activity
+    private fun redirectToLogin(){
+        val intent = Intent(applicationContext, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        Log.d("MainActivity", "Redirecting to LoginActivity")
+
+        // Start the LoginActivity
+        startActivity(intent)
+
+        // Stop any ongoing TTS (Text-to-Speech) if needed
+        textToSpeech.stop()
+
+        finish()  // Finish the current activity
+    }
+
 
 // Setting permissions for the camera
     private fun getPermission() {
@@ -361,11 +390,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Permission Required For Money Scanner!", Toast.LENGTH_SHORT).show()
@@ -388,7 +413,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // Text to Speech function
-    private fun textToSpeech(text: String) {
+    private fun speakText(text: String) {
         if (!textToSpeech.isSpeaking) {
             textToSpeech.stop()
         }
@@ -408,7 +433,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
                         Log.d("MainActivity", "Text to Speech Button Pressed")
-                        textToSpeech(text)
+                        speakText(text)
                         Log.d("MainActivity", "Text to Speech Button Triggered")
                     }
                 }
@@ -429,6 +454,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+
 //  Exit app functions
     // Logout
     private fun logout() {
@@ -443,27 +469,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             delay(1000)
 
             // Redirect to LoginActivity
-            val intent = Intent(applicationContext, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-            // Start the LoginActivity
-            startActivity(intent)
-            finish()  // Finish the current activity
-
-            // Stop any ongoing TTS (Text-to-Speech) if needed
-            textToSpeech.stop()
+            redirectToLogin()
 
             // Show logout success message
             Toast.makeText(this@MainActivity, "Logged out successfully!", Toast.LENGTH_SHORT).show()
         }
     }
 
+    // Destroying or clearing saved user info
     override fun onDestroy() {
         sessionDestroy() // Destroying or clearing saved user info
         super.onDestroy() // Call the super method first
         textToSpeech.stop()
     }
 
+    // Clearing saved user info (shared preferences)
     private fun sessionDestroy(){
         // Get the SharedPreferences instance where user data is saved
         val sharedPref = getSharedPreferences("session", Context.MODE_PRIVATE)
