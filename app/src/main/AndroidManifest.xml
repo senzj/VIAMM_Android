@@ -22,31 +22,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VIAMM"
         android:usesCleartextTraffic="true"
-        tools:targetApi="33">
+        tools:targetApi="30">
         <activity
             android:name=".charts.AnalyticsActivity"
             android:exported="true"
             android:label="@string/title_activity_analytics"
             android:parentActivityName=".MainActivity"/>
+
         <activity
             android:name=".EditRecordActivity"
             android:exported="true" />
+
         <activity
             android:name=".EditOrderActivity"
             android:exported="true"
             android:parentActivityName=".OrderActivity" />
+
         <activity
             android:name=".RecordActivity"
             android:exported="true"
             android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".OrderActivity"
             android:exported="true"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Base.Theme.VIAMM" />
+
         <activity
             android:name=".PaymentActivity"
             android:exported="false" />
+
         <activity
             android:name=".LoginActivity"
             android:exported="true"
@@ -57,10 +63,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.VIAMM" />
+
     </application>
 
 </manifest>
