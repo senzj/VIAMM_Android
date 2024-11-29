@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.viamm.charts.AnalyticsActivity
 import com.example.viamm.databinding.ActivityMainBinding
 import com.example.viamm.storage.SharedData
 import java.util.Locale
@@ -361,8 +362,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Analytics activity
     private fun redirectToAnalytics() {
-//        val intent = Intent(applicationContext, StatisticsActivity::class.java)
-//        startActivity(intent)
+        val intent = Intent(applicationContext, AnalyticsActivity::class.java)
+        startActivity(intent)
         onPause()
     }
 

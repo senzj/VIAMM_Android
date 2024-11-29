@@ -8,11 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.viamm"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.viamm"
         minSdk = 26
+        //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -108,29 +109,4 @@ dependencies {
     //courotine
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
-
-    //TFLite
-    implementation(libs.tensorflow.lite)
-    implementation(libs.tensorflow.lite.support.v020)
-    implementation(libs.tensorflow.lite.metadata.v020)
-    implementation(libs.tensorflow.lite.gpu.v290)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    //VicoCharts
-    // Version
-    val vicoVersion = "2.0.0-beta.3"
-    // For Jetpack Compose.
-    implementation("com.patrykandpatrick.vico:compose:$vicoVersion")
-    // For Material 2 theming in Jetpack Compose.
-    implementation("com.patrykandpatrick.vico:compose-m2:$vicoVersion")
-    // For Material 3 theming in Jetpack Compose.
-    implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
-    /* Houses the core logic. This is included in all other modules, so add it explicitly
-    only in the unlikely event that you don’t need anything else. */
-    implementation("com.patrykandpatrick.vico:core:$vicoVersion")
-    // For the view system.
-    implementation("com.patrykandpatrick.vico:views:$vicoVersion")
 }

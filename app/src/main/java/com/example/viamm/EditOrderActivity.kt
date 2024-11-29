@@ -331,20 +331,20 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         // Handle Scan Money Input Payment
                         Toast.makeText(this, "Scan Money Selected", Toast.LENGTH_SHORT).show()
 
-                        // Navigate to Scan Money Activity or handle the logic
-                        val intent = Intent(this, ScannerActivity::class.java).apply {
-                            // Booking Details
-                            putExtra("BOOKING_ID", orderId)
-                            putExtra("BOOKING_STATUS", orderStatus)
-                            putExtra("BOOKING_COST", totalCost)
-
-                            // Service Details for table view
-                            putParcelableArrayListExtra("SERVICES", services)
-                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
-                            Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
-                        }
-                        // Start the ScannerActivity
-                        startActivity(intent)
+//                        // Navigate to Scan Money Activity or handle the logic
+//                        val intent = Intent(this, ScannerActivity::class.java).apply {
+//                            // Booking Details
+//                            putExtra("BOOKING_ID", orderId)
+//                            putExtra("BOOKING_STATUS", orderStatus)
+//                            putExtra("BOOKING_COST", totalCost)
+//
+//                            // Service Details for table view
+//                            putParcelableArrayListExtra("SERVICES", services)
+//                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
+//                            Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
+//                        }
+//                        // Start the ScannerActivity
+//                        startActivity(intent)
 
                         // Destroy the current activity
                         Handler().postDelayed({
