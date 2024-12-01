@@ -78,14 +78,8 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0" // Default to "0" if not found
         val totalCost = totalCostString.toIntOrNull() ?: 0 // Safely convert to Int, defaulting to 0 if not convertible
         val date = intent.getStringExtra("booking_date")
-
-        // for future uses
         val masseurName = intent.getStringExtra("masseur_name")
         val customerName = intent.getStringExtra("customer_name")
-
-        Log.d("EditRecordActivity", "Booking ID: $orderId")
-        Log.d("EditRecordActivity", "Status: $orderStatus")
-        Log.d("EditRecordActivity", "Total Cost: $totalCost")
 
         // Set booking status with specific color for "CANCELLED" and "COMPLETE"
         val statusText = "Status: $orderStatus"

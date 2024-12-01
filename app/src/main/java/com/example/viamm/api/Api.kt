@@ -6,6 +6,7 @@ import com.example.viamm.models.getCompletedOrder.CompletedOrderResponse
 import com.example.viamm.models.Analytics.AnalyticsResponse
 import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
 import com.example.viamm.models.getOngoingOrder.OngoingOrderResponse
+import com.example.viamm.models.payment.PaymentResponse
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Field
@@ -51,6 +52,14 @@ interface Api {
         @Field("orderStatus") status: String
     ): Call<CancelOrderResponse>
 
+    // API to update order payment vaue
+    @FormUrlEncoded
+    @POST("order/update")
+    fun updateOrderPayment(
+        @Field("orderId") orderId: String,
+        @Field("orderPayment") payment: String
+    ): Call<PaymentResponse>
+
     // API handle statistics data to display to the graph
     @FormUrlEncoded
     @GET("order/stats")
@@ -58,5 +67,4 @@ interface Api {
         @Field("date") date: String
     ): Call<AnalyticsResponse>
 
-    // API to fetch and display
 }

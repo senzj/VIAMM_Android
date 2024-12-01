@@ -6,17 +6,21 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
@@ -25,22 +29,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditOrderBinding
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.getOngoingOrder.ServiceOrder
+import com.example.viamm.models.payment.PaymentResponse
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
-//unused imports
-//import android.view.Menu
-//import android.view.MenuItem
-//import android.os.Parcel
-//import android.os.Parcelable
-//import android.content.DialogInterface
 
 class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -50,14 +52,12 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textToSpeech: TextToSpeech
     private var isClicked = false
     private var isSpeaking = false
-    private var isTTSInitialized = false
 
-    private var orderId: String? = null
-    private var orderStatus: String? = null
+//    private var orderId: String? = null
+//    private var orderStatus: String? = null
     private var totalCost: Int = 0
 
-
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -80,49 +80,25 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // Retrieve the data from the Intent
-        orderId = intent.getStringExtra("BOOKING_ID")
-        orderStatus = intent.getStringExtra("BOOKING_STATUS")
-
-        // Retrieve list of services (ParcelableArrayList)
-        // Check the current Android version to handle the retrieval based on API level
-        val services: ArrayList<ServiceOrder>? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            // For Android 13 (API level 33) and above, use getParcelableArrayListExtra with type argument
-            intent.getParcelableArrayListExtra("SERVICES")
-        } else {
-            // For older Android versions, use getParcelableArrayListExtra without the type argument
-            intent.getParcelableArrayListExtra("SERVICES")
-        }
-
-
-
         // Total Cost
         totalCost = intent.getIntExtra("BOOKING_COST", 0)
+        val orderId = intent.getStringExtra("booking_id")
+        val orderStatus = intent.getStringExtra("booking_status")
+        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("service_details")
+        val enddate = intent.getStringExtra("booking_enddate")
+        val masseurName = intent.getStringExtra("masseur_name")
+        val customerName = intent.getStringExtra("customer_name")
 
-        // Other data for debugging and future use
-        // Masseur
-        val masseurName = intent.getStringExtra("MASSEUR_NAME")
-        val masseurAvailability = intent.getBooleanExtra("MASSEUR_IS_AVAILABLE", false)
-
-        // Location
-        val locationName = intent.getStringExtra("LOCATION_NAME")
-        val locationAvailability = intent.getBooleanExtra("LOCATION_IS_AVAILABLE", false)
-
-        // Log or use the data as needed
-        Log.d("EditOrderActivity", "Order ID: $orderId")
-        Log.d("EditOrderActivity", "Order Status: $orderStatus")
-        Log.d("EditOrderActivity", "Total Cost: $totalCost")
-        Log.d("EditOrderActivity", "Masseur Name: $masseurName")
-        Log.d("EditOrderActivity", "Masseur Availability: $masseurAvailability")
-        Log.d("EditOrderActivity", "Location Name: $locationName")
-        Log.d("EditOrderActivity", "Location Availability: $locationAvailability")
+        val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0" // Default to "0" if not found
+        val totalCost = totalCostString.toIntOrNull() ?: 0 // Safely convert to Int, defaulting to 0 if not convertible
 
         // Set booking status with specific color for "ONGOING"
-        val statusText = "Booking Status: $orderStatus"
+        val statusText = "Status: $orderStatus"
         val spannableString = SpannableString(statusText)
 
         if (orderStatus?.equals("on-going", ignoreCase = true) == true) {
-            val start = statusText.indexOf(orderStatus!!, ignoreCase = true)
-            val end = start + orderStatus!!.length
+            val start = statusText.indexOf(orderStatus, ignoreCase = true)
+            val end = start + orderStatus.length
             spannableString.setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Ongoing)),
                 start,
@@ -134,6 +110,9 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Update UI components
         binding.tvOrderID.text = "Booking ID: $orderId"
         binding.tvOrderStatus.text = spannableString
+        binding.tvOrderCustomer?.text = "Customer: $customerName"
+        binding.tvOrderMasseur?.text = "Masseur: $masseurName"
+        binding.tvOrderDate?.text = "Date: $enddate"
         binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
 
         // Populate the table with services dynamically
@@ -149,10 +128,14 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // Service Amount
             val amountTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 1f)
                 text = service.amount.toString()
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(amountTextView)
 
@@ -164,10 +147,14 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // Service Name
             val serviceNameTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 2f)
                 text = service.name
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(serviceNameTextView)
 
@@ -179,10 +166,14 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // Service Price
             val priceTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 1f)
                 text = service.price.toString()
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(priceTextView)
 
@@ -201,16 +192,43 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             })
         }
 
-        // set hover listener for text to speech
+        // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
+//        textToSpeech.setSpeechRate(0.9f)
+
+// Set up the listener for TTS progress
+        textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                // TTS has started
+                Log.d("EditOrderActivity", "TTS Started")
+                Log.d("EditOrderActivity", "TTS Message: $utteranceId")
+            }
+
+            override fun onDone(utteranceId: String?) {
+                // TTS finished, proceed with next action
+                Log.d("EditOrderActivity", "TTS Finished")
+                runOnUiThread {
+                    proceedWithNextAction() // Call the logic after TTS finishes
+                }
+            }
+
+            override fun onError(utteranceId: String?) {
+                // Handle any TTS errors if necessary
+                Log.e("EditOrderActivity", "TTS Error")
+            }
+        })
+
+        // set hover listener for text to speech
         setHoverListener(binding.btnOrderPayment, "Proceed to Payment")
         setHoverListener(binding.btnCancelOrder, "Cancel Order")
         setHoverListener(binding.btnOrderBack, "Back")
 
         // Set Payment button click listener to open a dialog box which let them pick manual payment or use money scan
-        binding.btnOrderPayment.setOnClickListener {
-            textToSpeech("Select Payment Options")
-            showPaymentOptionsDialog()
+        binding.btnOrderPayment.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> handleTap()
+            }
+            true
         }
 
         // Constants for double-click timing
@@ -238,7 +256,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         ) {
                             if (response.isSuccessful) {
                                 // Show success message
-                                textToSpeech("Booking Cancelled")
+                                speakText("Booking Cancelled")
                                 Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
                                 Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
 
@@ -266,7 +284,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     })
             } else {
                 // Single click detected, provide TTS confirmation
-                textToSpeech("Are you sure you want to cancel Booking ID: $orderId? Double-click to confirm.")
+                speakText("Are you sure you want to cancel Booking ID $orderId? Double-click to confirm.")
             }
 
             // Update the last click time
@@ -275,87 +293,205 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Set click listener for back button
         binding.btnOrderBack.setOnClickListener {
-            textToSpeech("Back to Ongoing Booking")
+            speakText("Back to Ongoing Booking")
             Handler().postDelayed({
+                val intent = Intent(this, OrderActivity::class.java)
+                startActivity(intent)
                 finish()
             },1000)
         }
     }
 
-    // Function to show the payment options dialog
-    private fun showPaymentOptionsDialog() {
-        // Create an AlertDialog.Builder
-        val builder = AlertDialog.Builder(this, R.style.CustomAlertDialog)
+    private var tapCount = 0 // Make tapCount a member variable
+    private val handler = Handler() // Use a shared handler to prevent duplication
+    private val tapDelay = 400L // Max delay between taps in milliseconds
 
-        // Retrieve the list of services (ParcelableArrayList)
-        val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
+    private fun handleTap() {
+        tapCount++ // Increment tap count on every tap
 
-        // Set the title and the items to display in the dialog
-        builder.setTitle("Select Payment Options")
-            .setItems(arrayOf("Manual Input Payment", "Scan Money Payment")) { _, which ->
-                when (which) {
-                    0 -> {
-                        // Text to speech
-                        textToSpeech("Manual Input Option Selected")
-                        Log.d("EditOrderActivity", "Manual Input Payment Selected")
+        Log.d("EditOrderActivity", "Tap Count: $tapCount")
 
-                        // Handle Manual Input Payment
-                        Toast.makeText(this, "Manual Payment Selected", Toast.LENGTH_SHORT).show()
+        // Remove previous callback to reset the timer on every new tap
+        handler.removeCallbacksAndMessages(null)
 
-                        // Navigate to Manual Payment Activity or handle the logic with passing the data
-                        val intent = Intent(this, PaymentActivity::class.java).apply {
-                            // Booking Details
-                            putExtra("BOOKING_ID", orderId)
-                            putExtra("BOOKING_STATUS", orderStatus)
-                            putExtra("BOOKING_COST", totalCost)
-
-                            // Service Details for table view
-                            putParcelableArrayListExtra("SERVICES", services)
-                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
-                            Log.d("EditOrderActivity", "Booking Details and data passed to Payment Activity")
-                        }
-                        // Start the PaymentActivity
-                        startActivity(intent)
-
-                        // Destroy the current activity
-                        Handler().postDelayed({
-                            finish()
-                        }, 3000)
-                    }
-
-                    1 -> {
-                        // Text to speech
-                        textToSpeech("Scan Money Option Selected")
-                        Log.d("EditOrderActivity", "Scan Money Payment Selected")
-
-                        // Handle Scan Money Input Payment
-                        Toast.makeText(this, "Scan Money Selected", Toast.LENGTH_SHORT).show()
-
-//                        // Navigate to Scan Money Activity or handle the logic
-//                        val intent = Intent(this, ScannerActivity::class.java).apply {
-//                            // Booking Details
-//                            putExtra("BOOKING_ID", orderId)
-//                            putExtra("BOOKING_STATUS", orderStatus)
-//                            putExtra("BOOKING_COST", totalCost)
-//
-//                            // Service Details for table view
-//                            putParcelableArrayListExtra("SERVICES", services)
-//                            Log.d("EditOrderActivity", "Booking Details: \nBooking ID: $orderId \nBooking Status: $orderStatus \nTotal Cost: $totalCost \nService Details: $services")
-//                            Log.d("EditOrderActivity", "Booking Details and data passed to Scanner Activity")
-//                        }
-//                        // Start the ScannerActivity
-//                        startActivity(intent)
-
-                        // Destroy the current activity
-                        Handler().postDelayed({
-                            finish()
-                        }, 3000)
-                    }
-                }
+        // Post delayed action to handle taps
+        handler.postDelayed({
+            when (tapCount) {
+                1 -> speakText("Proceeding to payment.. Tap twice for scan money.. And thrice for manual payment")
+                2 -> speakText("Tap twice for scan money")
+                3 -> speakText("Tap thrice for manual payment")
             }
 
+            // Handle action based on tap count
+            handlePaymentOption(tapCount)
+
+            // Reset tap count after the delay
+            tapCount = 0
+        }, tapDelay)
+    }
+
+
+    // Handle Payment Option Logic
+    private fun handlePaymentOption(tapCount: Int) {
+        when (tapCount) {
+            2 -> {
+                // Logic for Scan Money
+                Toast.makeText(this, "Scan Money Selected", Toast.LENGTH_SHORT).show()
+                speakText("Scan Money Option Selected")
+                // Example: Start scan activity
+                val intent = Intent(this, ScannerActivity::class.java)
+                startActivity(intent)
+            }
+            3 -> {
+                // Logic for Manual Payment
+                Toast.makeText(this, "Manual Payment Selected", Toast.LENGTH_SHORT).show()
+                speakText("Manual Input Option Selected.. Please enter the amount.")
+
+                // Show payment options dialog
+                showManualPaymentDialog()
+            }
+        }
+    }
+
+    private fun showManualPaymentDialog() {
+        Log.d("EditOrderActivity", "Showing Manual Payment Dialog")
+
+        // Create an AlertDialog.Builder with a custom style if desired
+        val builder = AlertDialog.Builder(this, R.style.CustomAlertDialog)
+
+        // Set the title
+        builder.setTitle("Enter Payment Amount")
+
+        // Create an EditText for user input
+        val input = EditText(this).apply {
+            hint = "Enter Amount" // Set placeholder text
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setPadding(50, 30, 50, 30) // Add padding for better spacing
+        }
+
+        // Add the input box to the dialog
+        builder.setView(input)
+
+        // Add a Submit button with a click listener
+        builder.setPositiveButton("Submit Payment") { dialog, _ ->
+            // Get the total cost as a string, then convert to Int
+            val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0"
+            val totalCost = totalCostString.toIntOrNull() ?: 0  // Convert to Int, default to 0 if conversion fails
+
+            // Entered amount should also be an integer (or float), so ensure it's a valid number
+            val enteredAmountString = input.text.toString().trim()
+            val enteredAmount = enteredAmountString.toIntOrNull() ?: 0  // Convert entered amount to Int, default to 0
+
+            Log.d("EditOrderActivity", "Entered Amount: $enteredAmount")
+            Log.d("EditOrderActivity", "Total Cost: $totalCost")
+
+            // If the entered amount is less than the total cost
+            if (enteredAmount < totalCost) {
+                val totalCoststr = totalCost.toString()
+                val message = "Insufficient amount! Please enter at least $totalCoststr pesos"
+                speakText(message)
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+                // Return early to prevent dialog dismissal
+                return@setPositiveButton
+
+            // If the entered amount is more than the total cost
+            } else if(enteredAmount > totalCost){
+                val change = enteredAmount - totalCost  // Calculate change
+
+                // convert to string
+                val changestr = change.toString()
+                val enteredAmountstr = enteredAmount.toString()
+
+                val message = "Payment successful! Your input amount is ${enteredAmountstr} pesos and your change is ${changestr} pesos."
+                Log.d("EditOrderActivity", "Message: $message")
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+                // Use the utility function to handle TTS and redirection
+                speakText(message)
+
+                // Call Retrofit to submit the payment
+                submitPayment(totalCost.toString())
+
+                // for delay input
+//                // Call Retrofit to submit the payment
+//                lifecycleScope.apply {
+//                    launch {
+//                        delay(10000)
+//                        submitPayment(totalCost.toString())
+//                    }
+//                }
+
+            // If the entered amount is exactly equal to the total cost
+            } else if (enteredAmount == totalCost) {
+                val message = "Payment successful!"
+                speakText(message)
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                // Call Retrofit to submit the payment
+                submitPayment(enteredAmountString)
+            }
+
+//            // Dismiss the dialog after payment success
+//            dialog.dismiss()
+
+            // Use lifecycleScope to delay redirection
+            lifecycleScope.apply {
+                launch {
+                    delay(6000) // delay
+
+                    // Dismiss the dialog after payment success
+                    dialog.dismiss()
+
+                    redirectToBooking() // Redirect to the Booking Activity
+                }
+            }
+        }
+
+        // Optionally, add a Cancel button to dismiss the dialog
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+
         // Create and show the dialog
-        builder.create().show()
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    // redirect to booking
+    private fun redirectToBooking() {
+        speakText("Redirecting you now to Booking")
+        val intent = Intent(this, OrderActivity::class.java)
+        lifecycleScope.apply {
+            launch {
+                delay(2000)
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+
+    // Function to submit payment to the server using Retrofit
+    private fun submitPayment(amount: String) {
+        val bookingId = intent.getStringExtra("booking_id") ?: return
+
+        // Example API call
+        RetrofitClient.instance.updateOrderPayment(bookingId, amount)
+            .enqueue(object : Callback<PaymentResponse> {
+                override fun onResponse(call: Call<PaymentResponse>, response: Response<PaymentResponse>) {
+                    if (response.isSuccessful) {
+//                        Toast.makeText(this@EditOrderActivity, "Payment successful!", Toast.LENGTH_SHORT).show()
+                        Log.d("EditOrderActivity", "Payment submitted successfully: $amount")
+                    } else {
+                        Toast.makeText(this@EditOrderActivity, "Failed to submit payment: ${response.message()}", Toast.LENGTH_SHORT).show()
+                        Log.e("EditOrderActivity", "Error response: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<PaymentResponse>, t: Throwable) {
+                    Toast.makeText(this@EditOrderActivity, "Error submitting payment: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Log.e("EditOrderActivity", "Error: ${t.message}")
+                }
+            })
     }
 
     private fun Int.dpToPx(): Int {
@@ -363,55 +499,65 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (this * density).toInt()
     }
 
-    // Remove the logout button if it exists
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        menuInflater.inflate(R.menu.toolbar_menu, menu)
-//
-//        menu?.findItem(R.id.btn_logout)?.isVisible = false
-//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
-//
-//        return true
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//
-//            // toolbar back button function
-//            android.R.id.home -> {
-//                finish()
-//                true
-//            }
-//
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
+//text to speech functions
+// The onInit function to initialize TTS
+override fun onInit(status: Int) {
+    if (status == TextToSpeech.SUCCESS) {
+        // TTS initialized successfully, set language if needed
+        val langResult = textToSpeech.setLanguage(Locale.US)
+        if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Log.e("TTS", "Language is not supported or missing data")
+        }
+    } else {
+        Log.e("TTS", "Initialization failed")
+    }
+}
 
-    //text to speech functions
-    // Initialize TextToSpeech
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = textToSpeech.setLanguage(Locale.US)
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
-            } else {
-                isTTSInitialized = true
-            }
-        } else {
-            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
+    private fun speakText(message: String) {
+        if (textToSpeech.isSpeaking) {
+            textToSpeech.stop()  // Stop any ongoing speech
+        }
+        val params = HashMap<String, String>()
+        params[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = "messageId"
+        textToSpeech.speak(message, TextToSpeech.QUEUE_FLUSH, params)  // Use QUEUE_FLUSH to ensure the message is spoken immediately
+    }
+
+    // speaks long text
+    private fun speakLongText(message: String) {
+        val chunks = message.chunked(100) // Split the message into chunks of 100 characters each
+        chunks.forEach { chunk ->
+            speakText(chunk)
         }
     }
 
-    // Text to Speech function
-    private fun textToSpeech(text: String) {
-        if (isTTSInitialized) {
-            if (!textToSpeech.isSpeaking) {
-                textToSpeech.stop()
-            }
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        } else {
-            Toast.makeText(this, "Text to Speech not initialized", Toast.LENGTH_SHORT).show()
+
+    // pauses text in between
+    private fun speakTextWithPause(message: String) {
+        val chunks = message.chunked(100)
+        chunks.forEach { chunk ->
+            speakText(chunk)
+            Thread.sleep(500)  // Pause for 500 milliseconds before speaking the next chunk
         }
     }
+
+    // pauses text if needed
+    private fun speakLongTextAsync(message: String) {
+        Thread {
+            val chunks = message.chunked(100)
+            chunks.forEach { chunk ->
+                speakText(chunk)
+                Thread.sleep(500) // Pause between chunks if needed
+            }
+        }.start()
+    }
+
+    // Proceed with Next Action after TTS finishes
+    private fun proceedWithNextAction() {
+        // Your logic here to proceed after TTS finishes
+        Log.d("EditOrderActivity", "Proceeding with next action after TTS completion")
+        // Example: startActivity(Intent(this, AnotherActivity::class.java))
+    }
+
     // Hold or Hover Listener event for text to speech
     @SuppressLint("ClickableViewAccessibility")
     private fun setHoverListener(button: Button, text: String) {
@@ -424,7 +570,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (!isClicked || !isSpeaking){
                         isSpeaking = true
                         Log.d("EditOrderActivity", "Text to Speech Button Pressed")
-                        textToSpeech(text)
+                        speakText(text)
                         Log.d("EditOrderActivity", "Text to Speech Button Triggered")
                     }
                 }

@@ -70,6 +70,8 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
 
         binding.btnBack.setOnClickListener {
             textToSpeech("Back to Dashboard")
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
             finish()
         }
 
@@ -166,31 +168,41 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
 
     private fun onSingleClick(selectedOrder: OngoingOrder) {
         val message = """
-            You selected Booking ID: ${selectedOrder.orderId}, 
+            You have tapped on Booking ID ${selectedOrder.orderId}, 
             which is currently ${selectedOrder.orderStatus}. 
             The customer who booked is ${selectedOrder.customer.customerName}, 
             The assigned masseur is ${selectedOrder.masseur.masseurName}, 
             and the masseur gender is ${selectedOrder.masseur.masseurGender}. 
             The total cost for this booking is ${selectedOrder.totalCost} pesos, 
             and the booking is scheduled to end at ${selectedOrder.timeEnd}.
+            Double tap to select booking ID ${selectedOrder.orderId}.
         """.trimIndent()
         textToSpeech(message)
         Log.d("OrderActivity", "Single-click: $message")
     }
 
     private fun onDoubleClick(selectedOrder: OngoingOrder) {
-        val message = "Redirecting to Booking details for Booking ID: ${selectedOrder.orderId}"
+        val message = "You have selected Booking ID ${selectedOrder.orderId}. Redirecting you now to Booking ID ${selectedOrder.orderId}"
         textToSpeech(message)
+
+        val servicesList = arrayListOf(selectedOrder.services)
+        Log.d("RecordsActivity", "Service details: $servicesList")
 
         // Prepare intent for the next activity
         val intent = Intent(this, EditOrderActivity::class.java).apply {
-            putExtra("BOOKING_ID", selectedOrder.orderId)
-            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)
-            putExtra("BOOKING_COST", selectedOrder.totalCost)
+            putExtra("booking_id", selectedOrder.orderId)
+            putExtra("booking_status", selectedOrder.orderStatus)
+            putExtra("booking_totalcost", selectedOrder.totalCost)
+            putExtra("masseur_name", selectedOrder.masseur.masseurName)
+            putExtra("customer_name", selectedOrder.customer.customerName)
+            putExtra("booking_enddate", selectedOrder.timeEnd)
+            putParcelableArrayListExtra("service_details", servicesList)
+            Log.d("RecordsActivity", "redirecting to edit records activity with details")
         }
 
         lifecycleScope.launch(Dispatchers.Main) {
             delay(3000)
+            finish()
             startActivity(intent)
         }
     }

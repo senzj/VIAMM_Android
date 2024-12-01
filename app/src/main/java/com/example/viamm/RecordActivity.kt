@@ -119,7 +119,7 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
             tvNoRecordBookingh2?.visibility = View.VISIBLE
             rvOrders.visibility = View.GONE
         }
-        textToSpeech("No Bookings Found.")
+        textToSpeech("No Records Found.")
     }
 
     private fun updateOrderList(newOrders: List<CompletedOrder>) {
@@ -145,20 +145,21 @@ class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, T
 
     private fun onSingleClick(selectedOrder: CompletedOrder) {
         val message = """
-            You selected Booking ID: ${selectedOrder.orderId}, 
+            You have tapped on Booking ID ${selectedOrder.orderId}, 
             which is ${selectedOrder.orderStatus}. 
             The customer who booked is ${selectedOrder.customer.customerName}, 
             The assigned masseur is ${selectedOrder.masseur.masseurName}, 
             and the masseur gender is ${selectedOrder.masseur.masseurGender}. 
             The total cost for this booking is ${selectedOrder.totalCost} pesos, 
             and the booking is scheduled on ${selectedOrder.timeEnd}.
+            Double tap to select record ${selectedOrder.orderId}.
         """.trimIndent()
         textToSpeech(message)
         Log.d("RecordsActivity", "Single-click: $message")
     }
 
     private fun onDoubleClick(selectedOrder: CompletedOrder) {
-        val message = "Redirecting to Booking details for Booking ID: ${selectedOrder.orderId}"
+        val message = "You have selected Booking ID: ${selectedOrder.orderId}. Redirecting you now to Booking ID ${selectedOrder.orderId}"
         textToSpeech(message)
 
         val servicesList = arrayListOf(selectedOrder.services)

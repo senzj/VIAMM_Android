@@ -180,7 +180,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             return false // Return false to allow further event propagation if needed
         }
 
-// Set onTouchListeners for buttons
+        // Set onTouchListeners for buttons
         orderBtn.setOnTouchListener { _, event ->
             val button = "Booking"
 
@@ -189,12 +189,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Booking",
                 onSingleClick = {
                     textToSpeech.stop()
-                    speakText("You have tapped on $button")
+                    speakText("You have tapped on $button.. Double tap to select $button.")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    speakText("You've selected $button. Redirecting now to $button.")
+                    speakText("You have selected $button. Redirecting you now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     CoroutineScope(Dispatchers.Main).launch {
@@ -225,12 +225,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Record",
                 onSingleClick = {
                     textToSpeech.stop()
-                    speakText("You have tapped on $button")
+                    speakText("You have tapped on $button.. Double tap to select $button.")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    speakText("You've selected $button. Redirecting now to $button.")
+                    speakText("You have selected $button. Redirecting you now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     CoroutineScope(Dispatchers.Main).launch {
@@ -261,12 +261,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Analytics",
                 onSingleClick = {
                     textToSpeech.stop()
-                    speakText("You have tapped on $button")
+                    speakText("You have tapped on $button.. Double tap to select $button.")
                     Log.d("MainActivity", "Tapped $button")
                 },
                 onDoubleClick = {
                     textToSpeech.stop()
-                    speakText("You've selected $button. Redirecting now to $button.")
+                    speakText("You have selected $button. Redirecting you now to $button.")
 
                     // add a delay to redirecting to finish the tts
                     // add a delay to redirecting to finish the tts
