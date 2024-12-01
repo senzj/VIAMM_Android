@@ -4,12 +4,14 @@ package com.example.viamm
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -22,7 +24,7 @@ import androidx.core.content.ContextCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityEditRecordBinding
-import com.example.viamm.models.Order.ServiceRecord
+import com.example.viamm.models.getCompletedOrder.ServiceRecord
 import retrofit2.Response
 import java.util.Locale
 import androidx.activity.enableEdgeToEdge
@@ -70,23 +72,23 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         api = RetrofitClient.instance
 
         // Retrieve the data from the Intent
-        val orderId = intent.getStringExtra("BOOKING_ID")
-        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
-        val services: ArrayList<ServiceRecord>? = intent.getParcelableArrayListExtra("SERVICES")
-        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+        val orderId = intent.getStringExtra("booking_id")
+        val orderStatus = intent.getStringExtra("booking_status")
+        val services: ArrayList<ServiceRecord>? = intent.getParcelableArrayListExtra("service_details")
+        val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0" // Default to "0" if not found
+        val totalCost = totalCostString.toIntOrNull() ?: 0 // Safely convert to Int, defaulting to 0 if not convertible
+        val date = intent.getStringExtra("booking_date")
 
-//        for future uses
-//        val masseurName = intent.getStringExtra("MASSEUR_NAME")
-//        val masseurAvailability = intent.getBooleanExtra("MASSEUR_IS_AVAILABLE", false)
-//        val locationName = intent.getStringExtra("LOCATION_NAME")
-//        val locationAvailability = intent.getBooleanExtra("LOCATION_IS_AVAILABLE", false)
+        // for future uses
+        val masseurName = intent.getStringExtra("masseur_name")
+        val customerName = intent.getStringExtra("customer_name")
 
         Log.d("EditRecordActivity", "Booking ID: $orderId")
-        Log.d("EditRecordActivity", "Booking Status: $orderStatus")
+        Log.d("EditRecordActivity", "Status: $orderStatus")
         Log.d("EditRecordActivity", "Total Cost: $totalCost")
 
         // Set booking status with specific color for "CANCELLED" and "COMPLETE"
-        val statusText = "Booking Status: $orderStatus"
+        val statusText = "Status: $orderStatus"
         val spannableString = SpannableString(statusText)
 
         if (orderStatus?.equals("cancelled", ignoreCase = true) == true) {
@@ -102,7 +104,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val start = statusText.indexOf(orderStatus, ignoreCase = true)
             val end = start + orderStatus.length
             spannableString.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Complete)),
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.Status_Completelight)),
                 start,
                 end,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -112,10 +114,14 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.tvRecordID.text = "Booking ID: $orderId"
         binding.tvRecordStatus.text = spannableString
         binding.tvTotalCost.text = "Total Amount: ₱$totalCost"
+        binding.tvRecordMasseur?.text = "Masseur: $masseurName"
+        binding.tvRecordCustomer?.text = "Customer: $customerName"
+        binding.tvRecordDate?.text = "Date: $date"
 
         // Initialize TextToSpeech
         textToSpeech = TextToSpeech(this, this)
 
+        // binding service details to the tabe
         services?.forEach { service ->
             val tableRow = TableRow(this)
             Log.d("EditRecordActivity", "Service: $service")
@@ -126,12 +132,16 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 setBackgroundColor(Color.DKGRAY)
             })
 
-            // Service Amount
+            // Service Count binding
             val amountTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 1f)
                 text = service.amount.toString()
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(amountTextView)
 
@@ -141,12 +151,16 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 setBackgroundColor(Color.BLACK)
             })
 
-            // Service Name
+            // Service Name data bind
             val serviceNameTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 2f)
                 text = service.name
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(serviceNameTextView)
 
@@ -156,12 +170,16 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 setBackgroundColor(Color.BLACK)
             })
 
-            // Service Price
+            // Service Price data bind
             val priceTextView = TextView(this).apply {
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 1f)
                 text = service.price.toString()
                 gravity = Gravity.CENTER_HORIZONTAL // Center the text horizontally
-                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setPadding(4.dpToPx(), 8.dpToPx(), 4.dpToPx(), 4.dpToPx()) // Set padding for text
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Set text size to 20sp
+                setTextColor(Color.BLACK) // Set text color to black
+                setTypeface(null, Typeface.BOLD) // Make the text bold
+                setBackgroundColor(Color.WHITE) // Set background color to white
             }
             tableRow.addView(priceTextView)
 
@@ -170,6 +188,8 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 layoutParams = TableRow.LayoutParams(1.dpToPx(), TableRow.LayoutParams.MATCH_PARENT)
                 setBackgroundColor(Color.BLACK)
             })
+
+            // add data to row on table
             binding.tblRecord.addView(tableRow)
 
             // Add horizontal line after each row
@@ -178,6 +198,7 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 setBackgroundColor(Color.BLACK)
             })
         }
+
         // Set hover listener for back button
         "Back".setHoverListener(binding.btnRecordBack)
 
@@ -204,24 +225,6 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Toast.makeText(this@EditRecordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
         Log.d("EditRecordActivity", "Error: ${t.message}")
     }
-
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        menuInflater.inflate(R.menu.toolbar_menu, menu)
-//        menu?.findItem(R.id.btn_logout)?.isVisible = false
-//        menu?.findItem(R.id.btn_scanner)?.isVisible = false
-//        return true
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            //toolbar back button function
-//            android.R.id.home -> {
-//                finish()
-//                true
-//            }
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
 
     //text to speech functions
     // Initialize TextToSpeech

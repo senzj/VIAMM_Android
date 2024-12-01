@@ -76,7 +76,7 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
         val currentOrder = orderList[position]
         holder.binding.apply {
             tvOrderId.text = "Booking ID: ${currentOrder.orderId}"
-//            tvOrderMasseur.text = "Masseur: ${}"
+            tvOrderMasseur.text = "Masseur: ${currentOrder.masseur.masseurName}"
             tvOrderStatus.text = currentOrder.orderStatus
             tvOrderTotal.text = "Total Amount: ₱${currentOrder.totalCost}"
 
@@ -121,6 +121,7 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
         notifyDataSetChanged()
     }
 
+    // Define the interface for click events
     interface RVListEvent {
         fun onItemClicked(position: Int)
         fun onTTSRequested(text: String)

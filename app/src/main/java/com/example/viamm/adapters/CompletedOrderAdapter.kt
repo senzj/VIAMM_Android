@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.viamm.R
 import com.example.viamm.RecordActivity
 import com.example.viamm.databinding.ItemOrderBinding
-import com.example.viamm.models.Order.Orders
+import com.example.viamm.models.getCompletedOrder.CompletedOrder
 
 class CompletedOrderAdapter(
-    private var orderList: List<Orders>,
+    private var orderList: List<CompletedOrder>,
     private val listener: RecordActivity
 ) : RecyclerView.Adapter<CompletedOrderAdapter.OrderViewHolder>() {
 
@@ -115,7 +115,7 @@ class CompletedOrderAdapter(
         val currentOrder = orderList[position]
         holder.binding.apply {
             tvOrderId.text = "Booking ID: ${currentOrder.orderId}"
-//            tvOrderMasseur.text = "Masseur: ${}"
+            tvOrderMasseur.text = "Masseur: ${currentOrder.masseur.masseurName}"
             tvOrderStatus.text = currentOrder.orderStatus
             tvOrderTotal.text = "Total Amount: ₱${currentOrder.totalCost}"
 
@@ -154,7 +154,7 @@ class CompletedOrderAdapter(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateOrders(newOrders: List<Orders>) {
+    fun updateOrders(newOrders: List<CompletedOrder>) {
         orderList = newOrders
         notifyDataSetChanged()
     }

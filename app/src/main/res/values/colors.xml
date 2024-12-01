@@ -22,6 +22,7 @@
 <!-- Status Colors -->
     <color name="Status_Cancelled">#F21F1F</color>
     <color name="Status_Complete">#1EF01E</color>
+    <color name="Status_Completelight">#2FA94B</color>
     <color name="Status_Ongoing">#FF8C00</color>
 
 <!-- Custom Alert Dialong Colors -->

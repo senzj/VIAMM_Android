@@ -22,7 +22,8 @@ object RetrofitClient {
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY // Log everything in debug
             } else {
-                HttpLoggingInterceptor.Level.BASIC // Minimal logging in release
+//                HttpLoggingInterceptor.Level.BASIC // Minimal logging in release
+                HttpLoggingInterceptor.Level.BODY
             }
         }
 

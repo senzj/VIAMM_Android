@@ -2,8 +2,8 @@ package com.example.viamm.api
 
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.Login.LoginResponse
-import com.example.viamm.models.Order.OrderResponse
-import com.example.viamm.models.Statistics.StatisticResponse
+import com.example.viamm.models.getCompletedOrder.CompletedOrderResponse
+import com.example.viamm.models.Analytics.AnalyticsResponse
 import com.example.viamm.models.UpdateOrder.UpdateOrdersResponse
 import com.example.viamm.models.getOngoingOrder.OngoingOrderResponse
 import retrofit2.Call
@@ -24,15 +24,13 @@ interface Api {
         @Field("password") password: String
     ): Call<LoginResponse>
 
-    // API to handle data requested by the user and retrieve via codeigniter
+    // API to get all completed order
     @GET("order/completed")
     suspend fun getCompletedOrders(
-
-    ): Response<OrderResponse>
+    ): Response<CompletedOrderResponse>
 
     @GET("order/ongoing")
     suspend fun getOngoingOrders(
-
     ): Response<OngoingOrderResponse>
 
     // API to handle data updated by user and sending it to server controller
@@ -58,5 +56,7 @@ interface Api {
     @GET("order/stats")
     fun getStats(
         @Field("date") date: String
-    ): Call<StatisticResponse>
+    ): Call<AnalyticsResponse>
+
+    // API to fetch and display
 }

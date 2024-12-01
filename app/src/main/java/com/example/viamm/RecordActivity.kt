@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -17,286 +16,193 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.viamm.adapters.CompletedOrderAdapter
 import com.example.viamm.api.RetrofitClient
-import com.example.viamm.databinding.ActivityRecordBinding
 import com.example.viamm.loadings.LoadingDialog
-import com.example.viamm.models.Order.Orders
-import com.example.viamm.models.Order.ServiceRecord
 import kotlinx.coroutines.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import retrofit2.HttpException
-import java.io.IOException
+import androidx.lifecycle.*
+import com.example.viamm.databinding.ActivityRecordBinding
+import com.example.viamm.models.getCompletedOrder.CompletedOrder
 import java.util.Locale
-
-//unused imports
-//import android.view.Menu
-//import android.view.MenuItem
-//import android.os.Handler
-
 
 class RecordActivity : AppCompatActivity(), CompletedOrderAdapter.RVListEvent, TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityRecordBinding
-    private lateinit var orderAdapter: CompletedOrderAdapter
-    private var orderList: List<Orders> = emptyList()
-    private val editOrderRequest = 100
+    private lateinit var completedOrderAdapter: CompletedOrderAdapter
+    private var orderList: List<CompletedOrder> = emptyList()
     private lateinit var loadingDialog: LoadingDialog
-    private lateinit var tvNoRecordBookingh1: TextView
-    private lateinit var tvNoRecordBookingh2: TextView
-
     private lateinit var textToSpeech: TextToSpeech
-    private var isClicked = false
     private var isSpeaking = false
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun fetchData() {
-        loadingDialog.show()
-        GlobalScope.launch(Dispatchers.IO) {
-            val response = try {
-                RetrofitClient.instance.getCompletedOrders()
-            } catch (e: IOException) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(applicationContext, "App Error: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-                Log.e("RecordActivity", "App error, details: ${e.message}")
-                return@launch
-            } catch (e: HttpException) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(applicationContext, "Http Error: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-                Log.e("RecordActivity", "Http error, details: ${e.message}")
-                return@launch
-            }
-
-            withContext(Dispatchers.Main) {
-                if (response.isSuccessful && response.body() != null) {
-                    val newOrders = response.body()!!.orders
-                    orderList = newOrders
-                    orderAdapter.updateOrders(newOrders)
-                    if (newOrders.isEmpty()) {
-                        tvNoRecordBookingh1.visibility = View.VISIBLE
-                        tvNoRecordBookingh2.visibility = View.VISIBLE
-                        binding.rvOrders.visibility = View.GONE
-
-                        // if no records are found
-                        textToSpeech.stop()
-                        textToSpeech("No Records Found.")
-
-                    } else {
-                        tvNoRecordBookingh1.visibility = View.GONE
-                        tvNoRecordBookingh2.visibility = View.GONE
-                        binding.rvOrders.visibility = View.VISIBLE
-                    }
-                } else {
-                    Toast.makeText(applicationContext, "Failed to fetch orders", Toast.LENGTH_SHORT).show()
-                }
-                loadingDialog.dismiss()
-            }
-        }
-    }
+    private var lastClickTime: Long = 0
+    private val clickDelay = 500L // Double-click time threshold in ms
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         binding = ActivityRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize toolbar
+        setupUI()
+        initializeTextToSpeech()
+        fetchOngoingBooking()
+    }
+
+    private fun setupUI() {
         setSupportActionBar(binding.toolbar)
-
-        ////toolbar back button
-//        supportActionBar?.apply {
-//            setDisplayHomeAsUpEnabled(true)
-//            setDisplayShowHomeEnabled(true)
-//        }
-
-        // Initialize loading dialog
         loadingDialog = LoadingDialog(this)
 
-        // Initialize loading dialog
-        textToSpeech = TextToSpeech(this, this)
-
-        // Initialize tvNoOngoingBooking for no ongoing booking
-        tvNoRecordBookingh1 = binding.tvNoRecordBookingh1!!
-        tvNoRecordBookingh2 = binding.tvNoRecordBookingh2!!
-
-        // Initialize order adapter for list views
-        orderAdapter = CompletedOrderAdapter(orderList, this)
+        // Set up RecyclerView for ongoing orders
+        completedOrderAdapter = CompletedOrderAdapter(orderList, this)
         binding.rvOrders.apply {
-            adapter = orderAdapter
+            adapter = completedOrderAdapter
             layoutManager = LinearLayoutManager(this@RecordActivity)
         }
 
-        "Back to Dashboard".setHoverListener(binding.btnBack)
         binding.btnBack.setOnClickListener {
             textToSpeech("Back to Dashboard")
             finish()
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        fetchData()
     }
 
-    // Item List View
-    // variable for clicking
-    private var lastClickTime: Long = 0
-    private val clickDelay: Long = 2000 // Time window for detecting double-click in milliseconds
+    private fun initializeTextToSpeech() {
+        textToSpeech = TextToSpeech(this, this)
+    }
+
+    private fun fetchOngoingBooking() {
+        loadingDialog.show()
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("RecordsActivity", "Fetching data...")
+
+                val response = RetrofitClient.instance.getCompletedOrders()
+
+                if (response.isSuccessful) {
+                    val rawResponse = response.body().toString()
+                    Log.d("RecordsActivity", "Raw JSON response: $rawResponse")
+                } else {
+                    Log.d("RecordsActivity", "Error fetching data: ${response.message()}")
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val newOrders = response.body()?.orders.orEmpty()
+                        if (newOrders.isEmpty()) {
+                            showNoBookingsUI()
+                        } else {
+                            updateOrderList(newOrders)
+                        }
+                    } else {
+                        showToast("Failed to fetch data: ${response.message()}")
+                    }
+                }
+            } catch (e: Exception) {
+                handleError("Error occurred while fetching data.", e)
+            } finally {
+                withContext(Dispatchers.Main) { loadingDialog.dismiss() }
+            }
+        }
+    }
+
+    private fun handleError(message: String, exception: Exception) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            showToast(message)
+            Log.e("RecordsActivity", message, exception)
+        }
+    }
+
+    private fun showNoBookingsUI() {
+        binding.apply {
+            tvNoRecordBookingh1?.visibility = View.VISIBLE
+            tvNoRecordBookingh2?.visibility = View.VISIBLE
+            rvOrders.visibility = View.GONE
+        }
+        textToSpeech("No Bookings Found.")
+    }
+
+    private fun updateOrderList(newOrders: List<CompletedOrder>) {
+        binding.apply {
+            tvNoRecordBookingh1?.visibility = View.GONE
+            tvNoRecordBookingh2?.visibility = View.GONE
+            rvOrders.visibility = View.VISIBLE
+        }
+        orderList = newOrders
+        completedOrderAdapter.updateOrders(newOrders)
+    }
 
     override fun onItemClicked(position: Int) {
         val selectedOrder = orderList[position]
         val currentTime = System.currentTimeMillis()
-
-        // Single-click or Double-click logic
         if (currentTime - lastClickTime < clickDelay) {
-            // Double-click detected
             onDoubleClick(selectedOrder)
         } else {
-            // Single-click detected
             onSingleClick(selectedOrder)
         }
-
-        // Update the last click time
         lastClickTime = currentTime
     }
 
-    // Change the function parameter to Orders instead of Order
-    private fun onSingleClick(selectedOrder: Orders) {
-        // Provide Text-to-Speech feedback for the selected order
-        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, which has Total Amount of ${selectedOrder.totalCost} pesos."
-//        val ttsText = "You have clicked on Booking ID: ${selectedOrder.orderId} with Status: ${selectedOrder.orderStatus}, Masseur: ${selectedOrder.masseur}, which has Total Amount of ${selectedOrder.totalCost} pesos."
-        textToSpeech(ttsText)
-
-        Log.d("RecordActivity", "Single-click: $ttsText")
+    private fun onSingleClick(selectedOrder: CompletedOrder) {
+        val message = """
+            You selected Booking ID: ${selectedOrder.orderId}, 
+            which is ${selectedOrder.orderStatus}. 
+            The customer who booked is ${selectedOrder.customer.customerName}, 
+            The assigned masseur is ${selectedOrder.masseur.masseurName}, 
+            and the masseur gender is ${selectedOrder.masseur.masseurGender}. 
+            The total cost for this booking is ${selectedOrder.totalCost} pesos, 
+            and the booking is scheduled on ${selectedOrder.timeEnd}.
+        """.trimIndent()
+        textToSpeech(message)
+        Log.d("RecordsActivity", "Single-click: $message")
     }
 
-    private fun onDoubleClick(selectedOrder: Orders) {
-        // Provide Text-to-Speech feedback for redirection
-        val ttsText = "Redirecting to Record details for Booking ID: ${selectedOrder.orderId}"
-        textToSpeech(ttsText)
+    private fun onDoubleClick(selectedOrder: CompletedOrder) {
+        val message = "Redirecting to Booking details for Booking ID: ${selectedOrder.orderId}"
+        textToSpeech(message)
 
-        // Redirect to EditRecordActivity with all the relevant data
-        val servicesList = ArrayList<ServiceRecord>()
-        selectedOrder.services.forEach { (serviceName, serviceDetails) ->
-            val service = ServiceRecord(serviceDetails.amount, serviceName, serviceDetails.price, serviceDetails.type)
-            servicesList.add(service)
-        }
+        val servicesList = arrayListOf(selectedOrder.services)
+        Log.d("RecordsActivity", "Service details: $servicesList")
 
         val intent = Intent(this, EditRecordActivity::class.java).apply {
-            putExtra("BOOKING_ID", selectedOrder.orderId)
-            putExtra("BOOKING_STATUS", selectedOrder.orderStatus)
-            putExtra("BOOKING_COST", selectedOrder.totalCost)
-            putParcelableArrayListExtra("SERVICES", servicesList)
-
-            selectedOrder.masseurs.forEach { (masseurName, isAvailable) ->
-                putExtra("MASSEUR_NAME", masseurName)
-                putExtra("MASSEUR_IS_AVAILABLE", isAvailable)
-            }
-
-            selectedOrder.locations.forEach { (locationName, isAvailable) ->
-                putExtra("LOCATION_NAME", locationName)
-                putExtra("LOCATION_IS_AVAILABLE", isAvailable)
-            }
+            putExtra("booking_id", selectedOrder.orderId)
+            putExtra("booking_status", selectedOrder.orderStatus)
+            putExtra("booking_totalcost", selectedOrder.totalCost)
+            putExtra("masseur_name", selectedOrder.masseur.masseurName)
+            putExtra("customer_name", selectedOrder.customer.customerName)
+            putExtra("booking_date", selectedOrder.orderDate)
+            putParcelableArrayListExtra("service_details", servicesList)
+            Log.d("RecordsActivity", "redirecting to edit records activity with details")
         }
 
-        // add a loading for visual reasons
-        loadingDialog.show()
-
-        // Timer using Handler to delay code execution
-        // Use Coroutine to handle delay and start the activity after the delay
-        CoroutineScope(Dispatchers.Main).launch {
-            // Delay for 4 seconds
-            delay(4000) // 4000 milliseconds = 4 seconds delay
-
-            // Log to indicate we are proceeding after the delay
-            Log.d("RecordActivity", "Proceeding to next step after TTS delay")
-
-            // Start the next activity
+        lifecycleScope.launch(Dispatchers.Main) {
+            delay(3000)
             startActivity(intent)
-
-            // Dismiss loading dialog
-            loadingDialog.dismiss()
-        }
-
-        Log.d("RecordActivity", "Double-click: Redirecting to Edit Record for Booking ID: ${selectedOrder.orderId}")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        fetchData()
-    }
-
-    //
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == editOrderRequest && resultCode == RESULT_OK) {
-            val updatedStatus = data?.getStringExtra("UPDATED_STATUS")
-            if (updatedStatus != null) {
-                fetchData()
-            }
         }
     }
 
-    // text to speech
+    private fun textToSpeech(message: String) {
+        if (isSpeaking) textToSpeech.stop()
+        textToSpeech.speak(message, TextToSpeech.QUEUE_FLUSH, null, null)
+        isSpeaking = true
+    }
+
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = textToSpeech.setLanguage(Locale.US)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Toast.makeText(this, "Text to Speech not supported on this device", Toast.LENGTH_SHORT).show()
+                showToast("Text-to-Speech is not supported.")
             }
         } else {
-            Toast.makeText(this, "Text to Speech Initialization failed", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Text to Speech function
-    private fun textToSpeech(text: String) {
-        if (!textToSpeech.isSpeaking) {
-            textToSpeech.stop()
-        }
-
-        CoroutineScope(Dispatchers.Main).launch {
-            // Delay timer
-            delay(530)
-
-            // Code to execute after the delay
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-            Log.d("LoginActivity", "Proceeding to next step after TTS delay")
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun String.setHoverListener(button: Button) {
-        button.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
-                    if (!isClicked || !isSpeaking) {
-                        isSpeaking = true
-                        textToSpeech(this)
-                    }
-                }
-                MotionEvent.ACTION_UP -> {
-                    textToSpeech.stop()
-                    isClicked = false
-                }
-                MotionEvent.ACTION_HOVER_EXIT -> {
-                    isClicked = false
-                }
-            }
-            false
+            showToast("Failed to initialize Text-to-Speech.")
         }
     }
 
     override fun onTTSRequested(text: String) {
         textToSpeech(text)
-        Log.d("RecordActivity", "TTS Requested for text: $text")
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }
