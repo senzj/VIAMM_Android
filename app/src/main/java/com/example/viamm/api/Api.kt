@@ -49,7 +49,8 @@ interface Api {
     @POST("order/update")
     fun updateOrderStatus(
         @Field("orderId") orderId: String,
-        @Field("orderStatus") status: String
+        @Field("workstation") workstation: String,
+        @Field("masseur") masseur: String
     ): Call<CancelOrderResponse>
 
     // API to update order payment vaue
@@ -57,7 +58,9 @@ interface Api {
     @POST("order/update")
     fun updateOrderPayment(
         @Field("orderId") orderId: String,
-        @Field("orderPayment") payment: String
+        @Field("orderPayment") payment: String,
+        @Field("workstation") workstation: String,
+        @Field("masseur") masseur: String
     ): Call<PaymentResponse>
 
     // API handle statistics data to display to the graph

@@ -4,5 +4,6 @@ import com.example.viamm.models.UpdateOrder.UpdateOrder
 
 data class CancelOrder (
     val orderId: Int,
-    val orderStatus: String
+    val workstation: String,
+    val masseur: String,
 )

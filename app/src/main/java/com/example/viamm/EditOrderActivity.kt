@@ -245,43 +245,13 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // if the user double clicked the button, cancel the order.
             if (clickTime - lastClickTime < doubleClick) {
                 // Double-click detected, proceed with cancellation
-                val updatedStatus = "CANCELLED"
+                val masseur = intent.getStringExtra("masseur_name")
+                val workstation = intent.getStringExtra("workstation")
 
-                // Call the cancelOrder API endpoint
-                api.updateOrderStatus(orderId!!, updatedStatus)
-                    .enqueue(object : Callback<CancelOrderResponse> {
-                        override fun onResponse(
-                            call: Call<CancelOrderResponse>,
-                            response: Response<CancelOrderResponse>
-                        ) {
-                            if (response.isSuccessful) {
-                                // Show success message
-                                speakText("Booking Cancelled")
-                                Toast.makeText(this@EditOrderActivity, "Booking ID: $orderId Cancelled.", Toast.LENGTH_SHORT).show()
-                                Log.d("EditOrderActivity", "Order Cancelled Successfully! Redirecting to previous activity")
+                if (orderId != null) {
+                    cancelOrder(orderId, workstation, masseur)
+                }
 
-                                // Set result for the previous activity
-                                val resultIntent = Intent()
-                                resultIntent.putExtra("UPDATED_STATUS", updatedStatus)
-                                setResult(RESULT_OK, resultIntent)
-
-                                Handler().postDelayed({
-                                    finish()
-                                }, 500)
-                                Log.d("EditOrderActivity", "Redirecting to previous activity")
-                            } else {
-                                // Show error message
-                                Toast.makeText(this@EditOrderActivity, "An Error Occurred. Failed to Cancel the Requested Order. $response", Toast.LENGTH_LONG).show()
-                                Log.d("EditOrderActivity", "An Error Occurred $response.")
-                            }
-                        }
-
-                        override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
-                            // Show error message
-                            Toast.makeText(this@EditOrderActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                            Log.d("EditOrderActivity", "Error: ${t.message}")
-                        }
-                    })
             } else {
                 // Single click detected, provide TTS confirmation
                 speakText("Are you sure you want to cancel Booking ID $orderId? Double-click to confirm.")
@@ -300,6 +270,70 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 finish()
             },1000)
         }
+    }
+
+    private fun cancelOrder(orderId: String, workstation: String?, masseur: String?) {
+        api.updateOrderStatus(orderId, workstation, masseur)
+            .enqueue(object : Callback<CancelOrderResponse> {
+                override fun onResponse(
+                    call: Call<CancelOrderResponse>,
+                    response: Response<CancelOrderResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        showToast("Booking ID: $orderId Cancelled.")
+                        logMessage("Order cancelled successfully! Redirecting to previous activity.")
+                        speakText("Booking Cancelled")
+
+                        val resultIntent = Intent().apply {
+                            putExtra("UPDATED_STATUS", "Cancelled")
+                        }
+                        setResult(RESULT_OK, resultIntent)
+
+                        Handler().postDelayed({ finish() }, 500)
+                    } else {
+                        showToast("An error occurred. Failed to cancel the order.")
+                        logMessage("Error: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<CancelOrderResponse>, t: Throwable) {
+                    showToast("Error: ${t.message}")
+                    logMessage("API call failed: ${t.message}")
+                }
+            })
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this@EditOrderActivity, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun logMessage(message: String) {
+        Log.d("EditOrderActivity", message)
+    }
+
+    private var lastClickTime: Long = 0
+    private val doubleClickThreshold: Long = 500 // Time threshold for double-click in ms
+
+    private fun handleCancelOrderClick(intent: Intent) {
+        val currentTime = System.currentTimeMillis()
+
+        if (currentTime - lastClickTime < doubleClickThreshold) {
+            val orderId = intent.getStringExtra("order_id")
+            val masseur = intent.getStringExtra("masseur_name")
+            val workstation = intent.getStringExtra("workstation")
+
+            if (orderId != null) {
+                cancelOrder(orderId, masseur, workstation)
+            } else {
+                showToast("Error: Order ID is missing.")
+                logMessage("Order ID not found in intent.")
+            }
+        } else {
+            val orderId = intent.getStringExtra("order_id") ?: "unknown"
+            speakText("Are you sure you want to cancel Booking ID $orderId? Double-click to confirm.")
+        }
+
+        lastClickTime = currentTime
     }
 
     private var tapCount = 0 // Make tapCount a member variable
@@ -473,9 +507,11 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Function to submit payment to the server using Retrofit
     private fun submitPayment(amount: String) {
         val bookingId = intent.getStringExtra("booking_id") ?: return
+        val workstation = intent.getStringExtra("workstation") ?: return
+        val masseur = intent.getStringExtra("masseur_name") ?: return
 
         // Example API call
-        RetrofitClient.instance.updateOrderPayment(bookingId, amount)
+        RetrofitClient.instance.updateOrderPayment(bookingId, amount, workstation, masseur)
             .enqueue(object : Callback<PaymentResponse> {
                 override fun onResponse(call: Call<PaymentResponse>, response: Response<PaymentResponse>) {
                     if (response.isSuccessful) {
