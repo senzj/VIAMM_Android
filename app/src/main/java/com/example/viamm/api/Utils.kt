@@ -6,7 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.logging.HttpLoggingInterceptor
 
-val Devmode = "1"
+val Devmode = "0"
 
 object Utils {
     val BASE_URL: String = if (Devmode == "1") {

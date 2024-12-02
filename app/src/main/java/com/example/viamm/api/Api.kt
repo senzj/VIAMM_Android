@@ -16,7 +16,27 @@ import retrofit2.http.POST
 
 interface Api {
 
-    // API to handle data input by user and sending it to server controller
+// GET REQUEST
+    // RECORDS
+    @GET("order/completed")
+    suspend fun getCompletedOrders(
+    ): Response<CompletedOrderResponse>
+
+    // BOOKING
+    @GET("order/ongoing")
+    suspend fun getOngoingOrders(
+    ): Response<OngoingOrderResponse>
+
+    // ANALYTICS
+    @FormUrlEncoded
+    @GET("order/stats")
+    fun getStats(
+        @Field("date") date: String
+    ): Call<AnalyticsResponse>
+
+
+// POST REQUEST
+    // LOGIN
     @FormUrlEncoded
     @POST("login")
     fun login(
@@ -25,49 +45,23 @@ interface Api {
         @Field("password") password: String
     ): Call<LoginResponse>
 
-    // API to get all completed order
-    @GET("order/completed")
-    suspend fun getCompletedOrders(
-    ): Response<CompletedOrderResponse>
-
-    @GET("order/ongoing")
-    suspend fun getOngoingOrders(
-    ): Response<OngoingOrderResponse>
-
-    // API to handle data updated by user and sending it to server controller
+    // CANCEL ORDER
     @FormUrlEncoded
-    @POST("order/update")
-    fun updateOrder(
-        @Field("orderId") orderId: String,
-        @Field("orderService") service: String,
-        @Field("orderEmpName") empName: String,
-        @Field("orderStatus") status: String
-    ): Call<UpdateOrdersResponse>
-
-    // API to handle data updated status by user and sending it to server controller
-    @FormUrlEncoded
-    @POST("order/update")
-    fun updateOrderStatus(
-        @Field("orderId") orderId: String,
+    @POST("order/cancel")
+    fun updateOrderCancel(
+        @Field("orderId") orderId: Int,
         @Field("workstation") workstation: String,
         @Field("masseur") masseur: String
     ): Call<CancelOrderResponse>
 
-    // API to update order payment vaue
+    // PAYMENT ORDER
     @FormUrlEncoded
-    @POST("order/update")
+    @POST("order/payment")
     fun updateOrderPayment(
-        @Field("orderId") orderId: String,
-        @Field("orderPayment") payment: String,
+        @Field("orderId") orderId: Int,
+        @Field("orderPayment") payment: Int,
         @Field("workstation") workstation: String,
         @Field("masseur") masseur: String
     ): Call<PaymentResponse>
-
-    // API handle statistics data to display to the graph
-    @FormUrlEncoded
-    @GET("order/stats")
-    fun getStats(
-        @Field("date") date: String
-    ): Call<AnalyticsResponse>
 
 }

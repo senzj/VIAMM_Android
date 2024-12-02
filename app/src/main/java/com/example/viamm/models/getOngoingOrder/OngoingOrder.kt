@@ -10,15 +10,15 @@ data class ServiceOrder(
     @SerializedName("price") val price: Int,
     @SerializedName("amount") val amount: Int,
     @SerializedName("type") val type: String,
-    @SerializedName("locations") val locations: String
+    @SerializedName("duration") val duration: Int
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.readInt(),
+        parcel.readInt() ?: 0,
+        parcel.readInt() ?: 0,
         parcel.readString() ?: "",
-        parcel.readString() ?: ""
+        parcel.readInt() ?: 0
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -26,7 +26,7 @@ data class ServiceOrder(
         parcel.writeInt(price)
         parcel.writeInt(amount)
         parcel.writeString(type)
-        parcel.writeString(locations)
+        parcel.writeInt(duration)
     }
 
     override fun describeContents(): Int = 0
@@ -56,7 +56,7 @@ data class Customer(
 data class OngoingOrder(
     // @SerializedName("key_from_api_response") val variableName: VariableType
 
-    @SerializedName("id") val orderId: String,
+    @SerializedName("id") val orderId: Int,
     @SerializedName("status") val orderStatus: String,
     @SerializedName("services") val services: ServiceOrder,
     @SerializedName("masseur") val masseur: Masseur,

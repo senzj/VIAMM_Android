@@ -112,7 +112,7 @@ class OngoingOrderAdapter(private var orderList: List<OngoingOrder>, private val
                 }
             }
         }
-        Log.d("OrderAdapter", "onBindViewHolder: $currentOrder")
+        Log.d("ongoingOrderAdapter", "onBindViewHolder: $currentOrder")
     }
 
     @SuppressLint("NotifyDataSetChanged")

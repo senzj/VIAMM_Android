@@ -82,15 +82,13 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Retrieve the data from the Intent
         // Total Cost
         totalCost = intent.getIntExtra("BOOKING_COST", 0)
-        val orderId = intent.getStringExtra("booking_id")
+        val orderId = intent.getIntExtra("booking_id", 0)
         val orderStatus = intent.getStringExtra("booking_status")
         val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("service_details")
         val enddate = intent.getStringExtra("booking_enddate")
         val masseurName = intent.getStringExtra("masseur_name")
         val customerName = intent.getStringExtra("customer_name")
-
-        val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0" // Default to "0" if not found
-        val totalCost = totalCostString.toIntOrNull() ?: 0 // Safely convert to Int, defaulting to 0 if not convertible
+        val totalCost = intent.getIntExtra("booking_totalcost", 0)
 
         // Set booking status with specific color for "ONGOING"
         val statusText = "Status: $orderStatus"
@@ -245,8 +243,8 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // if the user double clicked the button, cancel the order.
             if (clickTime - lastClickTime < doubleClick) {
                 // Double-click detected, proceed with cancellation
-                val masseur = intent.getStringExtra("masseur_name")
-                val workstation = intent.getStringExtra("workstation")
+                val masseur = intent.getStringExtra("masseur_name").toString()
+                val workstation = intent.getStringExtra("workstation").toString()
 
                 if (orderId != null) {
                     cancelOrder(orderId, workstation, masseur)
@@ -272,8 +270,8 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun cancelOrder(orderId: String, workstation: String?, masseur: String?) {
-        api.updateOrderStatus(orderId, workstation, masseur)
+    private fun cancelOrder(orderId: Int, workstation: String, masseur: String) {
+        api.updateOrderCancel(orderId, workstation, masseur)
             .enqueue(object : Callback<CancelOrderResponse> {
                 override fun onResponse(
                     call: Call<CancelOrderResponse>,
@@ -289,7 +287,12 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         }
                         setResult(RESULT_OK, resultIntent)
 
-                        Handler().postDelayed({ finish() }, 500)
+                        lifecycleScope.apply {
+                            launch {
+                                delay(3000)
+                                redirectToBooking()
+                            }
+                        }
                     } else {
                         showToast("An error occurred. Failed to cancel the order.")
                         logMessage("Error: ${response.errorBody()?.string()}")
@@ -311,6 +314,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.d("EditOrderActivity", message)
     }
 
+
     private var lastClickTime: Long = 0
     private val doubleClickThreshold: Long = 500 // Time threshold for double-click in ms
 
@@ -318,9 +322,9 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val currentTime = System.currentTimeMillis()
 
         if (currentTime - lastClickTime < doubleClickThreshold) {
-            val orderId = intent.getStringExtra("order_id")
-            val masseur = intent.getStringExtra("masseur_name")
-            val workstation = intent.getStringExtra("workstation")
+            val orderId = intent.getIntExtra("order_id", 0)
+            val masseur = intent.getStringExtra("masseur_name").toString()
+            val workstation = intent.getStringExtra("workstation").toString()
 
             if (orderId != null) {
                 cancelOrder(orderId, masseur, workstation)
@@ -335,6 +339,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         lastClickTime = currentTime
     }
+
 
     private var tapCount = 0 // Make tapCount a member variable
     private val handler = Handler() // Use a shared handler to prevent duplication
@@ -363,7 +368,6 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             tapCount = 0
         }, tapDelay)
     }
-
 
     // Handle Payment Option Logic
     private fun handlePaymentOption(tapCount: Int) {
@@ -445,7 +449,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 speakText(message)
 
                 // Call Retrofit to submit the payment
-                submitPayment(totalCost.toString())
+                submitPayment(totalCost)
 
                 // for delay input
 //                // Call Retrofit to submit the payment
@@ -462,7 +466,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 speakText(message)
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
                 // Call Retrofit to submit the payment
-                submitPayment(enteredAmountString)
+                submitPayment(enteredAmount)
             }
 
 //            // Dismiss the dialog after payment success
@@ -505,10 +509,10 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // Function to submit payment to the server using Retrofit
-    private fun submitPayment(amount: String) {
-        val bookingId = intent.getStringExtra("booking_id") ?: return
-        val workstation = intent.getStringExtra("workstation") ?: return
-        val masseur = intent.getStringExtra("masseur_name") ?: return
+    private fun submitPayment(amount: Int) {
+        val bookingId = intent.getIntExtra("booking_id", 0)
+        val workstation = intent.getStringExtra("workstation").toString()
+        val masseur = intent.getStringExtra("masseur_name").toString()
 
         // Example API call
         RetrofitClient.instance.updateOrderPayment(bookingId, amount, workstation, masseur)
@@ -535,19 +539,19 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (this * density).toInt()
     }
 
-//text to speech functions
-// The onInit function to initialize TTS
-override fun onInit(status: Int) {
-    if (status == TextToSpeech.SUCCESS) {
-        // TTS initialized successfully, set language if needed
-        val langResult = textToSpeech.setLanguage(Locale.US)
-        if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-            Log.e("TTS", "Language is not supported or missing data")
+    //text to speech functions
+    // The onInit function to initialize TTS
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            // TTS initialized successfully, set language if needed
+            val langResult = textToSpeech.setLanguage(Locale.US)
+            if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "Language is not supported or missing data")
+            }
+        } else {
+            Log.e("TTS", "Initialization failed")
         }
-    } else {
-        Log.e("TTS", "Initialization failed")
     }
-}
 
     private fun speakText(message: String) {
         if (textToSpeech.isSpeaking) {
@@ -565,7 +569,6 @@ override fun onInit(status: Int) {
             speakText(chunk)
         }
     }
-
 
     // pauses text in between
     private fun speakTextWithPause(message: String) {

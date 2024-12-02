@@ -118,13 +118,13 @@ data class Customer(
 data class CompletedOrder(
     // @SerializedName("key_from_api_response") val variableName: VariableType
 
-    @SerializedName("id") val orderId: String,
+    @SerializedName("id") val orderId: Int,
     @SerializedName("status") val orderStatus: String,
     @SerializedName("services") val services: ServiceRecord,
     @SerializedName("masseur") val masseur: Masseur,
     @SerializedName("customer") val customer: Customer,
     @SerializedName("workstation") val workstation: String,
-    @SerializedName("totalCost") val totalCost: String, // Changed to String to handle "N/A"
+    @SerializedName("totalCost") val totalCost: Int, // Changed to String to handle "N/A"
     @SerializedName("paid_amount") val paidAmount: String,
     @SerializedName("date") val orderDate: String,
     @SerializedName("time_end") val timeEnd: String

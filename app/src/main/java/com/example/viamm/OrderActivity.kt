@@ -186,7 +186,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
         textToSpeech(message)
 
         val servicesList = arrayListOf(selectedOrder.services)
-        Log.d("RecordsActivity", "Service details: $servicesList")
+        Log.d("OrderActivity", "Service details: $servicesList")
 
         // Prepare intent for the next activity
         val intent = Intent(this, EditOrderActivity::class.java).apply {
@@ -198,7 +198,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
             putExtra("booking_enddate", selectedOrder.timeEnd)
             putExtra("workstation", selectedOrder.workstation)
             putParcelableArrayListExtra("service_details", servicesList)
-            Log.d("RecordsActivity", "redirecting to edit records activity with details")
+            Log.d("OrderActivity", "redirecting to edit Order activity with details\n $selectedOrder")
         }
 
         lifecycleScope.launch(Dispatchers.Main) {

@@ -15,14 +15,12 @@ import android.widget.Button
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.viamm.api.Api
 import com.example.viamm.api.RetrofitClient
 import com.example.viamm.databinding.ActivityPaymentBinding
-import com.example.viamm.loadings.LoadingDialog
 import com.example.viamm.loadings.ProcessLoading
 import com.example.viamm.models.CancelOrder.CancelOrderResponse
 import com.example.viamm.models.getOngoingOrder.ServiceOrder
@@ -77,9 +75,9 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupFocusChangeListener(etPaymentAmount)
 
         // binding data to layout view
-        val orderId = intent.getStringExtra("BOOKING_ID")
-        val orderStatus = intent.getStringExtra("BOOKING_STATUS")
-        val totalCost = intent.getIntExtra("BOOKING_COST", 0)
+        val orderId = intent.getStringExtra("BOOKING_ID")?.toInt()
+        val orderStatus = intent.getStringExtra("BOOKING_STATUS").toString()
+        val totalCost = intent.getIntExtra("BOOKING_COST", 0).toInt()
         val services: ArrayList<ServiceOrder>? = intent.getParcelableArrayListExtra("SERVICES")
 
         //binding data to text view
@@ -188,9 +186,11 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                         // Data pass to the API then to the server
                         val updatedStatus = "COMPLETED"
+                        val workstation = intent.getStringExtra("workstation").toString()
+                        val masseur = intent.getStringExtra("masseur_name").toString()
 
-                        if (orderId!!.isNotEmpty()) {
-                            api.updateOrderStatus(orderId, updatedStatus).enqueue(object : Callback<CancelOrderResponse> {
+                        if (orderId != null) {
+                            api.updateOrderCancel(orderId, workstation, masseur).enqueue(object : Callback<CancelOrderResponse> {
                                 override fun onResponse(call: Call<CancelOrderResponse>, response: Response<CancelOrderResponse>) {
                                     if (response.isSuccessful) {
                                         Toast.makeText(this@PaymentActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
@@ -222,10 +222,10 @@ class PaymentActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 }
                             })
                         } else {
-                            Toast.makeText(this, "Order ID is missing", Toast.LENGTH_SHORT).show()
-                            textToSpeech("Order ID is missing")
-                            Log.d("PaymentActivity", "Order ID is missing")
-                            processloadingDialog.dismiss()
+                        Toast.makeText(this, "Order ID is missing", Toast.LENGTH_SHORT).show()
+                        textToSpeech("Order ID is missing")
+                        Log.d("PaymentActivity", "Order ID is missing")
+                        processloadingDialog.dismiss()
                         }
                     }
                 }

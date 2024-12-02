@@ -72,11 +72,10 @@ class EditRecordActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         api = RetrofitClient.instance
 
         // Retrieve the data from the Intent
-        val orderId = intent.getStringExtra("booking_id")
+        val orderId = intent.getIntExtra("booking_id", 0)
         val orderStatus = intent.getStringExtra("booking_status")
         val services: ArrayList<ServiceRecord>? = intent.getParcelableArrayListExtra("service_details")
-        val totalCostString = intent.getStringExtra("booking_totalcost") ?: "0" // Default to "0" if not found
-        val totalCost = totalCostString.toIntOrNull() ?: 0 // Safely convert to Int, defaulting to 0 if not convertible
+        val totalCost = intent.getIntExtra("booking_totalcost", 0)
         val date = intent.getStringExtra("booking_date")
         val masseurName = intent.getStringExtra("masseur_name")
         val customerName = intent.getStringExtra("customer_name")
