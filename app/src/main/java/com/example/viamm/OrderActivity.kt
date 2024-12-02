@@ -196,7 +196,7 @@ class OrderActivity : AppCompatActivity(), OngoingOrderAdapter.RVListEvent, Text
             putExtra("masseur_name", selectedOrder.masseur.masseurName)
             putExtra("customer_name", selectedOrder.customer.customerName)
             putExtra("booking_enddate", selectedOrder.timeEnd)
-            putExtra("workstation", selectedOrder.workstation)
+            putExtra("workstation", selectedOrder.workstation.workstationName)
             putParcelableArrayListExtra("service_details", servicesList)
             Log.d("OrderActivity", "redirecting to edit Order activity with details\n $selectedOrder")
         }

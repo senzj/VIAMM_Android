@@ -52,6 +52,11 @@ data class Customer(
     @SerializedName("gender") val customerGender: String
 )
 
+data class Workstation(
+    @SerializedName("name") val workstationName: String,
+    @SerializedName("type") val workstationType: String
+)
+
 // Data class for OngoingOrder
 data class OngoingOrder(
     // @SerializedName("key_from_api_response") val variableName: VariableType
@@ -61,7 +66,7 @@ data class OngoingOrder(
     @SerializedName("services") val services: ServiceOrder,
     @SerializedName("masseur") val masseur: Masseur,
     @SerializedName("customer") val customer: Customer, // Make sure this is an object, not an array
-    @SerializedName("workstation") val workstation: String,
+    @SerializedName("workstation") val workstation: Workstation,
     @SerializedName("totalCost") val totalCost: String,
     @SerializedName("paid_amount") val paidAmount: String,
     @SerializedName("date") val orderDate: String,

@@ -377,7 +377,16 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 Toast.makeText(this, "Scan Money Selected", Toast.LENGTH_SHORT).show()
                 speakText("Scan Money Option Selected")
                 // Example: Start scan activity
+                val orderId = intent.getIntExtra("booking_id", 0)
+                val workstation = intent.getStringExtra("workstation").toString()
+                val masseur = intent.getStringExtra("masseur_name").toString()
+
                 val intent = Intent(this, ScannerActivity::class.java)
+                intent.putExtra("booking_id", orderId)
+                intent.putExtra("masseur", masseur)
+                intent.putExtra("workstation", workstation)
+
+                Log.d("EOActivity -> ScannerActivity", "Booking ID: $orderId\nMasseur: $masseur\nWorkstation: $workstation")
                 startActivity(intent)
             }
             3 -> {
