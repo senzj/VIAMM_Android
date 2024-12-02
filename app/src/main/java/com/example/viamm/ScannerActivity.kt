@@ -71,9 +71,9 @@ class ScannerActivity : AppCompatActivity() {
             }
 
             settings.javaScriptEnabled = true
-            var URL = ""
-            var finalURL = "http://192.168.254.105/Capstoneproject_web/mobile/camera"
-            loadUrl(finalURL)
+            var URL = "http://192.168.254.105/Capstoneproject_web/mobile/camera"
+            var testURL = "https://webcamtests.com/"
+            loadUrl(testURL)
         }
 
 
