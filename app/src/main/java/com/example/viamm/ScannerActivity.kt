@@ -60,6 +60,14 @@ class ScannerActivity : AppCompatActivity() {
         webView.apply {
             webViewClient = WebViewClient()
             webChromeClient = object : WebChromeClient(){
+
+                override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                    // Handle JavaScript alert
+                    Toast.makeText(this@ScannerActivity, message, Toast.LENGTH_SHORT).show()
+                    result?.confirm() // Confirm the alert
+                    return true
+                }
+
                 override fun onPermissionRequest(request: PermissionRequest) {
 
                     // check if devices request for camera
@@ -70,10 +78,16 @@ class ScannerActivity : AppCompatActivity() {
                 }
             }
 
+            settings.apply {
+                javaScriptEnabled = true // Enable JavaScript
+                domStorageEnabled = true // Enable DOM storage
+                mediaPlaybackRequiresUserGesture = false // Allow media playback without user gestures
+            }
+
             settings.javaScriptEnabled = true
             var URL = "http://192.168.254.105/Capstoneproject_web/mobile/camera"
             var testURL = "https://webcamtests.com/"
-            loadUrl(testURL)
+            loadUrl(URL)
         }
 
 
