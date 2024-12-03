@@ -20,37 +20,33 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class ScannerActivity : AppCompatActivity() {
-    // initiating webview
-    private val webView : WebView by lazy { findViewById(R.id.scanner_WV) }
+    private val webView: WebView by lazy { findViewById(R.id.scanner_WV) }
 
-    // permission request code
-    private var permissionRequest : PermissionRequest? = null
+    private var permissionRequest: PermissionRequest? = null
 
-    // prompt to allow or deny camera access
-    private val dialog : AlertDialog.Builder by lazy { AlertDialog.Builder(this).apply {
-        setTitle("Camera Permission")
-        setMessage("This app has requested camera permission. Would you like to grant it?")
-        setPositiveButton(android.R.string.ok) { dialog, _ ->
-            permissionRequest?.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
-            dialog.dismiss()
+    // Launchers to handle permission requests
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            // Permission granted, show the WebView content
+            webView.reload()
+        } else {
+            // Permission denied
+            Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
         }
-        setNegativeButton("Deny"){ dialog, _ ->
-            permissionRequest?.deny()
-            dialog.dismiss()
-        }
+    }
 
-    } }
-
-    // launcher
-    val launcher = registerForActivityResult(ActivityResultContracts.RequestPermission()){granted->
-        permissionRequest?.apply {
-            if (granted){
-                dialog.show()
-//                grant( arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE) )
-            } else {
-                deny()
+    // Dialog for granting camera permission
+    private val dialog: AlertDialog by lazy {
+        AlertDialog.Builder(this).apply {
+            setTitle("Camera Permission")
+            setMessage("This app needs camera access. Would you like to grant it?")
+            setPositiveButton("Grant") { _, _ ->
+                permissionRequest?.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
             }
-        }
+            setNegativeButton("Deny") { _, _ ->
+                permissionRequest?.deny()
+            }
+        }.create()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,18 +58,16 @@ class ScannerActivity : AppCompatActivity() {
             webChromeClient = object : WebChromeClient(){
 
                 override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
-                    // Handle JavaScript alert
                     Toast.makeText(this@ScannerActivity, message, Toast.LENGTH_SHORT).show()
                     result?.confirm() // Confirm the alert
                     return true
                 }
 
                 override fun onPermissionRequest(request: PermissionRequest) {
-
-                    // check if devices request for camera
-                    if(PermissionRequest.RESOURCE_VIDEO_CAPTURE in request.resources){
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE in request.resources) {
                         permissionRequest = request
-                        launcher.launch(android.Manifest.permission.CAMERA)
+                        // Request camera permission
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     }
                 }
             }
