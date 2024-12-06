@@ -388,6 +388,7 @@ class EditOrderActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 Log.d("EOActivity -> ScannerActivity", "Booking ID: $orderId\nMasseur: $masseur\nWorkstation: $workstation")
                 startActivity(intent)
+                finish()
             }
             3 -> {
                 // Logic for Manual Payment
