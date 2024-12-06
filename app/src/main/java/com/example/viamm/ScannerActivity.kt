@@ -13,38 +13,33 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class ScannerActivity : AppCompatActivity() {
-    // WebView instance
     private val webView: WebView by lazy { findViewById(R.id.scanner_WV) }
 
-    // Permission request
     private var permissionRequest: PermissionRequest? = null
 
-    // AlertDialog for permission requests
-    private val dialog: AlertDialog.Builder by lazy {
-        AlertDialog.Builder(this).apply {
-            setTitle("Permission Request")
-            setPositiveButton("Allow") { _, _ ->
-                Log.d(TAG, "Permission granted via dialog")
-                permissionRequest?.grant(permissionRequest?.resources ?: emptyArray())
-            }
-            setNegativeButton("Deny") { _, _ ->
-                Log.d(TAG, "Permission denied via dialog")
-                permissionRequest?.deny()
-            }
+    // Launchers to handle permission requests
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            // Permission granted, show the WebView content
+            webView.reload()
+        } else {
+            // Permission denied
+            Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Permission launcher
-    private val launcher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        permissionRequest?.let {
-            if (granted) {
-                Log.d(TAG, "Permission granted via launcher")
-                it.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
-            } else {
-                Log.d(TAG, "Permission denied via launcher")
-                it.deny()
+    // Dialog for granting camera permission
+    private val dialog: AlertDialog by lazy {
+        AlertDialog.Builder(this).apply {
+            setTitle("Camera Permission")
+            setMessage("This app needs camera access. Would you like to grant it?")
+            setPositiveButton("Grant") { _, _ ->
+                permissionRequest?.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
             }
-        }
+            setNegativeButton("Deny") { _, _ ->
+                permissionRequest?.deny()
+            }
+        }.create()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,8 +47,44 @@ class ScannerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_scanner)
         Log.d(TAG, "onCreate: Initializing ScannerActivity")
 
-        // Configure WebView
-        configureWebView()
+        webView.apply {
+            webViewClient = WebViewClient()
+            webChromeClient = object : WebChromeClient(){
+
+                override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                    Toast.makeText(this@ScannerActivity, message, Toast.LENGTH_SHORT).show()
+                    result?.confirm() // Confirm the alert
+                    return true
+                }
+
+                override fun onPermissionRequest(request: PermissionRequest) {
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE in request.resources) {
+                        permissionRequest = request
+                        // Request camera permission
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                }
+            }
+
+            settings.apply {
+                javaScriptEnabled = true // Enable JavaScript
+                domStorageEnabled = true // Enable DOM storage
+                mediaPlaybackRequiresUserGesture = false // Allow media playback without user gestures
+            }
+
+            settings.javaScriptEnabled = true
+            var URL = "http://192.168.254.105/Capstoneproject_web/mobile/camera"
+            var testURL = "https://webcamtests.com/"
+            loadUrl(URL)
+        }
+
+
+
+        // Retrieve intent extras
+        val bookingId = intent.getIntExtra("booking_id", 0)
+        val masseur = intent.getStringExtra("masseur") ?: ""
+        val workstation = intent.getStringExtra("workstation") ?: ""
+
 
         // Load your URL
         val url = "https://viamm.xyz/mobile/camera"
